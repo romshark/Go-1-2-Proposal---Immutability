@@ -94,26 +94,25 @@ func main() {
 ----
 ### 2.2. Immutable Methods
 ```go
-type Person struct {
-	Name const string              // Immutable
-	BankAccount const *BankAccount // Immutable
-	PhoneNumber string
+type Object struct {
+	MutableString string // Mutable field
 }
 
-// ExampleMethod has immutable pointer-receiver and is therefore a const method
-func (p const *Person) ExampleMethod() {
-	p.PhoneNumber = "54321" // Compile-time error
-	p.Name = "New Name"     // Compile-time error
+// MutatingMethod is a non-const method
+func (o *Object) MutatingMethod() {
+	o.MutableString = "new value"
 }
 
-func main() {
-	person := Person{}
-	person.ExampleMethod()
+// ConstMethod has immutable pointer-receiver and is therefore a const method.
+// It's illegal to mutate mutable fields and call mutating methods inside it
+func (o const *Object) ConstMethod() {
+	o.MutableString = "new value" // Compile-time error
+	o.MutatingMethod()            // Compile-time error
 }
 ```
 ```
-.example.go:9:19 cannot assign to field `Person.BankAccount` of immutable receiver `p` of type `const *Person`
-.example.go:10:13 cannot assign to field `Person.Name` of immutable receiver `p` of type `const *Person`
+.example.go:13:22 cannot assign to field `Object.MutableString` of immutable receiver `o` of type `const *Object`
+.example.go:14:7 cannot call mutating method `Object.MutatingMethod` on immutable receiver `o` of type `const *Object`
 ```
 
 ----

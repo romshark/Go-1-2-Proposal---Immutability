@@ -204,7 +204,7 @@ func ReadObj(
 ----
 ### 2.4. Immutable Return Values
 
-*onokonem: do we really need the immutable fields in mutable struct? what for?*
+*onokonem: do we really need the immutable return values? what for?*
 
 Immutable return values are declared using the `const` qualifier and guarantee
 that the returned objects will be immutable in any receiving context.

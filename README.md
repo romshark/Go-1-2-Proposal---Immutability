@@ -1,20 +1,43 @@
 # Go 2 - Immutability
-This document describes a Go 2 (*Go > 1.11*) language feature proposal to immutability.
+This document describes a Go 2 (*Go > 1.11*) language feature proposal to
+immutability.
 
 Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
+
+**Table of Contents**
+- [Go 2 - Immutability](#go-2---immutability)
+	- [1. Introduction](#1-introduction)
+		- [1.1. Current Problems](#11-current-problems)
+			- [1.1.1. Slow Code](#111-slow-code)
+			- [1.1.2. Vague Documentation](#112-vague-documentation)
+			- [1.1.3. Potentially Undefined Behavior](#113-potentially-undefined-behavior)
+		- [1.2. Benefits](#12-benefits)
+			- [1.2.1. Fast Code](#121-fast-code)
+			- [1.2.2. Safe Code](#122-safe-code)
+			- [1.2.3. Self-Explaining Code](#123-self-explaining-code)
+	- [2. Proposed Language Features](#2-proposed-language-features)
+		- [2.1. Immutable Fields](#21-immutable-fields)
+		- [2.2. Immutable Methods](#22-immutable-methods)
+		- [2.3. Immutable Arguments](#23-immutable-arguments)
+		- [2.4. Immutable Return Values](#24-immutable-return-values)
 
 ## 1. Introduction
 A Go 1 developer's current approach to immutability is copying because Go 1.x
 doesn't currently provide any immutability annotations.
 
 ### 1.1. Current Problems
-The current approach to immutability has a number of serious disadvantages listed below
+The current approach to immutability has a number of serious disadvantages
+listed below
 
 #### 1.1.1. Slow Code
-Copies slow down our code and thus encourage us to write unsafe mutable APIs when targeting optimal performance, you have to choose between performance or safety.
+Copies slow down our code and thus encourage us to write unsafe mutable APIs
+when targeting optimal performance, you have to choose between performance or
+safety.
 
 #### 1.1.2. Vague Documentation
-We have to manually describe what can be mutated and what the code user **must not** mutate. This unnecessarily complicates the documentation and makes it error prone.
+We have to manually describe what can be mutated and what the code user **must
+not** mutate. This unnecessarily complicates the documentation and makes it
+error prone.
 
 #### 1.1.3. Potentially Undefined Behavior
 Mutating what shouldn't be mutated can cause undefined behavior.
@@ -23,10 +46,12 @@ Mutating what shouldn't be mutated can cause undefined behavior.
 Immutability can give us the following benefits:
 
 #### 1.2.1. Fast Code
-No need to make unnecessary copies and compromises between safety and performance.
+No need to make unnecessary copies and compromises between safety and
+performance.
 
 #### 1.2.2. Safe Code
-A compile-time guarantee to avoid any undefined behavior that could have been caused by violating immutability recommendations.
+A compile-time guarantee to avoid any undefined behavior that could have been
+caused by violating immutability recommendations.
 
 #### 1.2.3. Self-Explaining Code
 No need to explicitly describe mutability recommendations in the documentation.
@@ -191,4 +216,5 @@ func main() {
 ```
 
 ----
-Copyright © 2018 [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
+Copyright © 2018 [Roman Sharkov](https://github.com/romshark)
+(<roman.sharkov@qbeon.com>)

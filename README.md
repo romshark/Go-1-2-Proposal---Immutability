@@ -59,6 +59,10 @@ No need to explicitly describe mutability recommendations in the documentation.
 ## 2. Proposed Language Features
 
 ### 2.1. Immutable Fields
+Immutable struct fields are declared using the `const` qualifier. Immutable
+fields can only be set during the definition of the object and are then
+immutable for the entire lifetime of the object within any context.
+
 ```go
 type Object struct {
 	ImmutableField const *Object // Immutable
@@ -84,6 +88,7 @@ func main() {
 	obj.ImmutableField.ImmutableField = &Object{} // Compile-time error
 }
 ```
+**Expected compilation errors:**
 ```
 .example.go:9:23 cannot assign to immutable field `Object.ImmutableField` of type `const *Object`
 .example.go:21:25 cannot assign to immutable field `Object.ImmutableField` of type `const *Object`
@@ -92,32 +97,41 @@ func main() {
 
 ----
 ### 2.2. Immutable Methods
+Immutable methods are declared using the `const` qualifier on the function
+receiver and guarantee to not mutate the receiver in any way when called.
+They can safely be used in immutable contexts, such as within other
+immutables methods and/or on immutable objects.
+
+Technically, this feature should rather be called "immutable function
+receivers".
+
 ```go
 type Object struct {
-	mutableField *Object // Mutable
+    mutableField *Object // Mutable
 }
 
 // MutatingMethod is a non-const method.
 func (o *Object) MutatingMethod() const *Object {
-	o.mutableField = &Object{}
-	return o.ImmutableMethod()
+    o.mutableField = &Object{}
+    return o.ImmutableMethod()
 }
 
 // ImmutableMethod is a const method.
 // It's illegal to mutate any fields of the receiver.
 // It's illegal to call mutating methods of the receiver
 func (o const *Object) ImmutableMethod() const *Object {
-	o.MutatingMethod()         // Compile-time method
-	o.mutableField = &Object{} // Compile-time method
-	return o.mutableField
+    o.MutatingMethod()         // Compile-time method
+    o.mutableField = &Object{} // Compile-time method
+    return o.mutableField
 }
 
 func main() {
-	const obj := Object{}
-	obj.ImmutableMethod()
-	obj.MutatingMethod() // Compile-time error
+    const obj := Object{}
+    obj.ImmutableMethod()
+    obj.MutatingMethod() // Compile-time error
 }
 ```
+**Expected compilation errors:**
 ```
 .example.go:15:7 cannot call mutating method `Object.MutatingMethod` on immutable receiver `o` of type `const *Object`
 .example.go:16:21 cannot assign to contextually immutable field `Object.mutableField` of type `*Object`
@@ -126,6 +140,11 @@ func main() {
 
 ----
 ### 2.3. Immutable Arguments
+Immutable arguments are declared using the `const` qualifier and guaranteed to
+not be mutated by the receiving function. Mutating any mutable fields of the
+object is illegal within the recursive context of the receiving function.
+Calling non-const mutating methods on immutable arguments is illegal as well.
+
 ```go
 type Object struct {
 	MutableField *Object // Mutable
@@ -152,6 +171,7 @@ func ReadObj(
 	obj.MutableField = &Object{} // Compile-time error
 }
 ```
+**Expected compilation errors:**
 ```
 .example.go:21:19 cannot use obj (type const *Object) as type *Object in argument to MutateObject
 .example.go:22:9 cannot call mutating method `Object.MutatingMethod` on immutable variable `obj` of type `const *Object`
@@ -160,6 +180,9 @@ func ReadObj(
 
 ----
 ### 2.4. Immutable Return Values
+Immutable return values are declared using the `const` qualifier and guarantee
+that the returned objects will be immutable in any receiving context.
+
 ```go
 type Object struct {
 	MutableField *Object // Mutable
@@ -184,6 +207,7 @@ func main() {
 	immutableVariable.MutatingMethod()         // Compile-time error
 }
 ```
+**Expected compilation errors:**
 ```
 .example.go:20:37 cannot assign to field `Object.MutableField` of contextually immutable variable `immutableVariable` of type `const *Object`
 .example.go:21:23 cannot call function `Object.MutatingMethod` with non-const receiver on contextually immutable variable `immutableVariable` of type `const *Object`

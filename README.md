@@ -137,8 +137,8 @@ func (o *Object) MutatingMethod() const *Object {
 // It's illegal to mutate any fields of the receiver.
 // It's illegal to call mutating methods of the receiver
 func (o const *Object) ImmutableMethod() const *Object {
-    o.MutatingMethod()         // Compile-time method
-    o.mutableField = &Object{} // Compile-time method
+    o.MutatingMethod()         // Compile-time error
+    o.mutableField = &Object{} // Compile-time error
     return o.mutableField
 }
 

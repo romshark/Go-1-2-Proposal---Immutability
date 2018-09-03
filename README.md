@@ -166,50 +166,32 @@ func ReadList(
 ----
 ### 2.4. Immutable Return Values
 ```go
-type Person struct {
-	Name string
+type Object struct {
+	MutableField *Object // Mutable
 }
 
-// SetName has mutable receiver and is therefore a non-const method
-func (p *Person) SetName(newName string) {
-	p.Name = newName
+// MutatingMethod is a non-const method
+func (p *Object) MutatingMethod() {
+	p.MutableField = &Object{}
 }
 
-// Generate returns an immutable slice of mutable objects
-func Generate() (persons const []*Person) {
-	persons = []*Person{
-		&Person{Name: "Joe"},
-		&Person{Name: "Jack"},
-		&Person{Name: "Jordan"},
-	}
+// ReturnImmutable returns an immutable value
+func ReturnImmutable() const *Object {
+	return &Object{MutableField: &Object{
+		MutableField: &Object{},
+	}}
 }
 
 func main() {
-	list := Generate()
-
-	list[0] = &Person{}            // Compile-time error
-	list = nil                     // Compile-time error
-	list = append(list, &Person{}) // Compile-time error
-
-	// Sub-slices inherit immutability from the original slice
-	subList := list[1:2]
-	subList[0] = &Person{}            // Compile-time error
-	subList = nil                     // Compile-time error
-	subList = append(list, &Person{}) // Compile-time error
-
-	// Calling non-const methods on slice items is legal
-	// because the slice isn't declared as a deeply immutable argument
-	p := list[0]
-	p.SetName("Johan")
+	immutableVariable := ReturnImmutable()
+	
+	immutableVariable.MutableField = &Object{} // Compile-time error
+	immutableVariable.MutatingMethod()         // Compile-time error
 }
 ```
 ```
-.example.go:22:14 cannot assign to contextually immutable variable `list` of type `const []*Person`
-.example.go:23:11 cannot assign to contextually immutable variable `list` of type `const []*Person`
-.example.go:24:11 cannot assign to contextually immutable variable `list` of type `const []*Person`
-.example.go:28:17 cannot assign to contextually immutable variable `subList` of type `const []*Person`, immutability is inherited from variable `list`
-.example.go:29:14 cannot assign to contextually immutable variable `subList` of type `const []*Person`, immutability is inherited from variable `list`
-.example.go:30:14 cannot assign to contextually immutable variable `subList` of type `const []*Person`, immutability is inherited from variable `list`
+.example.go:20:37 cannot assign to field `Object.MutableField` of contextually immutable variable `immutableVariable` of type `const *Object`
+.example.go:21:23 cannot call function `Object.MutatingMethod` with non-const receiver on contextually immutable variable `immutableVariable` of type `const *Object`
 ```
 
 ----

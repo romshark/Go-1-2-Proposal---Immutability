@@ -20,6 +20,7 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 		- [2.2. Immutable Methods](#22-immutable-methods)
 		- [2.3. Immutable Arguments](#23-immutable-arguments)
 		- [2.4. Immutable Return Values](#24-immutable-return-values)
+		- [2.5. Immutable Variables](#25-immutable-variables)
 
 ## 1. Introduction
 A Go 1 developer's current approach to immutability is copying because Go 1.x
@@ -211,6 +212,46 @@ func main() {
 ```
 .example.go:20:37 cannot assign to field `Object.MutableField` of contextually immutable variable `immutableVariable` of type `const *Object`
 .example.go:21:23 cannot call function `Object.MutatingMethod` with non-const receiver on contextually immutable variable `immutableVariable` of type `const *Object`
+```
+
+----
+### 2.5. Immutable Variables
+Immutable variables are declared using the `const` qualifier and guarantee
+to not be mutated within any context.
+
+```go
+type Object struct {
+	MutableField *Object // Mutable
+}
+
+// MutatingMethod is a non-const method
+func (o *Object) MutatingMethod() {}
+
+// ImmutableMethod is a const method
+func (o const *Object) ImmutableMethod() {}
+
+// NewObject creates and returns a new mutable object instance
+func NewObject() *Object {
+	return &Object{}
+}
+
+// MutateObject mutates the given object
+func MutateObject(obj *Object) {
+	obj.MutableField = &Object{}
+}
+
+func main() {
+	const obj = NewObject()
+	obj.MutableField = &Object{} // Compile-time error
+	obj.MutatingMethod()         // Compile-time error
+	MutateObject(obj)            // Compile-time error
+}
+```
+**Expected compilation errors:**
+```
+.example.go:23:23 cannot assign to contextually immutable field `Object.MutableField` of type `*Object`
+.example.go:24:9 cannot call mutating method `Object.MutatingMethod` on immutable variable `obj` of type `const *Object`
+.example.go:25:19 cannot use obj (type const *Object) as type *Object in argument to MutateObject
 ```
 
 ----

@@ -60,35 +60,33 @@ No need to explicitly describe mutability recommendations in the documentation.
 
 ### 2.1. Immutable Fields
 ```go
-type Person struct {
-	Name const string                   // Immutable
-	BankAccount const *BankAccount      // Immutable
-	PhoneNumber string
+type Object struct {
+	ImmutableField const *Object // Immutable
+	MutableField   string
 }
 
-func (p *Person) SomeMethod() {
-	person.PhoneNumber = "54321"
-	person.BankAccount = &BankAccount{} // Compile-time error
-	person.Name = "Bill"                // Compile-time error
+// MutatingMethod is a non-const method
+func (o *Object) MutatingMethod() {
+	o.ImmutableField = &Object{} // Compile-time error
 }
 
 func main() {
 	// Immutable fields are immutable once the object is initialized
-	person := Person{
-		Name: "Joe",
-		PhoneNumber: "12345",
+	obj := Object{
+		ImmutableField: &Object{
+			ImmutableField: nil,
+		},
 	}
-	person.BankAccount = &BankAccount{} // Compile-time error
 
-	person.PhoneNumber = "54321"
-	person.Name = "Bill"                // Compile-time error
+	obj.ImmutableField = nil // Compile-time error
+	obj.ImmutableField.ImmutableField = &Object{} // Compile-time error
+	obj.MutableField = "new value"
 }
 ```
 ```
-.example.go:9:25 cannot assign to immutable field `Person.BankAccount` of type `const *BankAccount`
-.example.go:10:17 cannot assign to immutable field `Person.Name` of type `const string`
-.example.go:19:25 cannot assign to immutable field `Person.BankAccount` of type `const *BankAccount`
-.example.go:22:17 cannot assign to immutable field `Person.Name` of type `const string`
+.example.go:8:23 cannot assign to immutable field `Object.ImmutableField` of type `const *Object`
+.example.go:19:25 cannot assign to immutable field `Object.ImmutableField` of type `const *Object`
+.example.go:20:40 cannot assign to immutable field `Object.ImmutableField` of type `const *Object`
 ```
 
 ----

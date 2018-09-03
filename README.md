@@ -137,18 +137,25 @@ func (o *Object) MutatingMethod() {}
 // ImmutableMethod is a const method
 func (o const *Object) ImmutableMethod() {}
 
+// MutateObject mutates the given object
+func MutateObject(obj *Object) {
+	obj.MutableField = &Object{}
+}
+
 // ReadObj is guaranteed to only read the object passed by the argument
 // without mutating it in any way
 func ReadObj(
 	obj const *Object // Immutable
 ) ([]BankAccounts, error) {
+	MutateObject(obj)            // Compile-time error
 	obj.MutatingMethod()         // Compile-time error
 	obj.MutableField = &Object{} // Compile-time error
 }
 ```
 ```
-.example.go:16:9 cannot call mutating method `Object.MutatingMethod` on immutable variable `obj` of type `const *Object`
-.example.go:17:23 cannot assign to contextually immutable field `Object.MutableField` of type `*Object`
+.example.go:21:19 cannot use obj (type const *Object) as type *Object in argument to MutateObject
+.example.go:22:9 cannot call mutating method `Object.MutatingMethod` on immutable variable `obj` of type `const *Object`
+.example.go:23:23 cannot assign to contextually immutable field `Object.MutableField` of type `*Object`
 ```
 
 ----

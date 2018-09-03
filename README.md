@@ -15,7 +15,7 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 			- [1.2.1. Fast Code](#121-fast-code)
 			- [1.2.2. Safe Code](#122-safe-code)
 			- [1.2.3. Self-Explaining Code](#123-self-explaining-code)
-	- [2. Proposed Language Features](#2-proposed-language-features)
+	- [2. Proposed Language Changes](#2-proposed-language-changes)
 		- [2.1. Immutable Fields](#21-immutable-fields)
 		- [2.2. Immutable Methods](#22-immutable-methods)
 		- [2.3. Immutable Arguments](#23-immutable-arguments)
@@ -57,7 +57,19 @@ caused by violating immutability recommendations.
 #### 1.2.3. Self-Explaining Code
 No need to explicitly describe mutability recommendations in the documentation.
 
-## 2. Proposed Language Features
+## 2. Proposed Language Changes
+The following 5 changes need to be made to the language to fully fulfill this
+proposal. The changes involve:
+- [struct field declaration statements](#21-immutable-fields)
+- [function receiver declaration statements](#22-immutable-methods)
+- [function arguments declaration statements](#23-immutable-arguments)
+- [function return values declaration statements](#24-immutable-return-values)
+- [variable declaration statements](#25-immutable-variables)
+
+All proposed changes are fully backwards-compatible and don't require any
+breaking changes to be introduced to the language. Code written in previous
+versions of the Go 1.x programming language will continue to compile and work as
+expected.
 
 ### 2.1. Immutable Fields
 Immutable struct fields are declared using the `const` qualifier. Immutable

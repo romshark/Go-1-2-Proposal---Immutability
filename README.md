@@ -93,24 +93,34 @@ func main() {
 ### 2.2. Immutable Methods
 ```go
 type Object struct {
-	MutableString string // Mutable field
+	mutableField *Object // Mutable
 }
 
-// MutatingMethod is a non-const method
-func (o *Object) MutatingMethod() {
-	o.MutableString = "new value"
+// MutatingMethod is a non-const method.
+func (o *Object) MutatingMethod() const *Object {
+	o.mutableField = &Object{}
+	return o.ImmutableMethod()
 }
 
-// ConstMethod has immutable pointer-receiver and is therefore a const method.
-// It's illegal to mutate mutable fields and call mutating methods inside it
-func (o const *Object) ConstMethod() {
-	o.MutableString = "new value" // Compile-time error
-	o.MutatingMethod()            // Compile-time error
+// ImmutableMethod is a const method.
+// It's illegal to mutate any fields of the receiver.
+// It's illegal to call mutating methods of the receiver
+func (o const *Object) ImmutableMethod() const *Object {
+	o.MutatingMethod()         // Compile-time method
+	o.mutableField = &Object{} // Compile-time method
+	return o.mutableField
+}
+
+func main() {
+	const obj := Object{}
+	obj.ImmutableMethod()
+	obj.MutatingMethod() // Compile-time error
 }
 ```
 ```
-.example.go:13:22 cannot assign to field `Object.MutableString` of immutable receiver `o` of type `const *Object`
-.example.go:14:7 cannot call mutating method `Object.MutatingMethod` on immutable receiver `o` of type `const *Object`
+.example.go:15:7 cannot call mutating method `Object.MutatingMethod` on immutable receiver `o` of type `const *Object`
+.example.go:16:21 cannot assign to contextually immutable field `Object.mutableField` of type `*Object`
+.example.go:23:9 cannot call mutating method `Object.MutatingMethod` on contextually immutable variable `obj` of type `const *Object`
 ```
 
 ----

@@ -62,11 +62,12 @@ No need to explicitly describe mutability recommendations in the documentation.
 ```go
 type Object struct {
 	ImmutableField const *Object // Immutable
-	MutableField   string
+	MutableField   *Object       // Mutable
 }
 
 // MutatingMethod is a non-const method
 func (o *Object) MutatingMethod() {
+	o.MutableField = &Object{}
 	o.ImmutableField = &Object{} // Compile-time error
 }
 
@@ -78,15 +79,15 @@ func main() {
 		},
 	}
 
-	obj.ImmutableField = nil // Compile-time error
+	obj.MutableField = &Object{}
+	obj.ImmutableField = nil                      // Compile-time error
 	obj.ImmutableField.ImmutableField = &Object{} // Compile-time error
-	obj.MutableField = "new value"
 }
 ```
 ```
-.example.go:8:23 cannot assign to immutable field `Object.ImmutableField` of type `const *Object`
-.example.go:19:25 cannot assign to immutable field `Object.ImmutableField` of type `const *Object`
-.example.go:20:40 cannot assign to immutable field `Object.ImmutableField` of type `const *Object`
+.example.go:9:23 cannot assign to immutable field `Object.ImmutableField` of type `const *Object`
+.example.go:21:25 cannot assign to immutable field `Object.ImmutableField` of type `const *Object`
+.example.go:22:40 cannot assign to immutable field `Object.ImmutableField` of type `const *Object`
 ```
 
 ----

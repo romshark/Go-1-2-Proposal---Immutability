@@ -25,6 +25,7 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 		- [3.1. Are the items within immutable slices/maps also immutable?](#31-are-the-items-within-immutable-slicesmaps-also-immutable)
 		- [3.2. Go is all about simplicity, so why make the language even more complicated?](#32-go-is-all-about-simplicity-so-why-make-the-language-even-more-complicated)
 		- [3.3. Aren't other features such as generics and better error handling not more important right now?](#33-arent-other-features-such-as-generics-and-better-error-handling-not-more-important-right-now)
+		- [3.4. Why overload the `const` keyword instead of introducing a new keyword like `immutable` etc.?](#34-why-overload-the-const-keyword-instead-of-introducing-a-new-keyword-like-immutable-etc)
 
 ## 1. Introduction
 A Go 1 developer's current approach to immutability is copying because Go 1.x
@@ -359,6 +360,18 @@ immutability. It should be clear that it makes code both safer and easier to
 make sense of. It doesn't require any breaking changes and it doesn't
 even require a single new language keyword. Therefore immutability should be
 considered of higher priority compared to other previously mentioned topics.
+
+----
+
+### 3.4. Why overload the `const` keyword instead of introducing a new keyword like `immutable` etc.?
+**Backwards-compatibility**. Using the const keyword would allow us to introduce
+immutability to Go 1.x without having to make breaking changes to the language.
+The introduction of a new keyword could potentially break existing Go 1.x code,
+where the new keyword might be used for naming symbols causing build conflicts.
+`const` on the other hand is already a [reserved language
+keyword](https://golang.org/ref/spec#Keywords) which doesn't interfere with the
+proposed language changes and verbally comes close to the desired meaning (for
+example, C++ uses the `const` keyword to do just that).
 
 ----
 Copyright © 2018 [Roman Sharkov](https://github.com/romshark)

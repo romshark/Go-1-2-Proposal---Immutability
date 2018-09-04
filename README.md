@@ -1,3 +1,5 @@
+![Immutability - A Go 2 Language Feature Proposal](https://github.com/romshark/Go-2-Proposal---Immutability/blob/master/document_header.png "Immutability - A Go 2 Language Feature Proposal")
+
 # Go 2 - Immutability
 This document describes a Go 2 (*Go > 1.11*) language feature proposal to
 immutability.

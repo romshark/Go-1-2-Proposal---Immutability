@@ -79,6 +79,9 @@ versions of the Go 1.x programming language will continue to compile and work as
 expected.
 
 ### 2.1. Immutable Fields
+
+*onokonem: do we really need the immutable fields in mutable struct? what for?*
+
 Immutable struct fields are declared using the `const` qualifier. Immutable
 fields can only be set during the definition of the object and are then
 immutable for the entire lifetime of the object within any context.
@@ -117,6 +120,9 @@ func main() {
 
 ----
 ### 2.2. Immutable Methods
+
+*onokonem: should we rename this one to immutable receivers?*
+
 Immutable methods are declared using the `const` qualifier on the function
 receiver and guarantee to not mutate the receiver in any way when called.
 They can safely be used in immutable contexts, such as within other
@@ -200,6 +206,9 @@ func ReadObj(
 
 ----
 ### 2.4. Immutable Return Values
+
+*onokonem: do we really need the immutable return values? what for?*
+
 Immutable return values are declared using the `const` qualifier and guarantee
 that the returned objects will be immutable in any receiving context.
 

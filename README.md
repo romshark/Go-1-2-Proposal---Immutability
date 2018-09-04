@@ -185,7 +185,7 @@ func MutateObject(obj *Object) {
 // without mutating it in any way
 func ReadObj(
 	obj const *Object // Immutable
-) ([]BankAccounts, error) {
+) {
 	MutateObject(obj)            // Compile-time error
 	obj.MutatingMethod()         // Compile-time error
 	obj.MutableField = &Object{} // Compile-time error

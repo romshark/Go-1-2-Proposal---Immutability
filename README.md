@@ -383,7 +383,7 @@ example, C++ uses the `const` keyword to do just that).
 write-protected references to mutable memory.
 
 **Long:** The value of a constant is defined during the compilation and remains
-a static piece of memory for the entire life time of your program. An immutable
+a static piece of memory for the entire lifetime of your program. An immutable
 field, argument, return value, receiver or variable on the other hand is **not**
 static in memory, because it can still be mutated through mutable references:
 

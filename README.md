@@ -29,6 +29,7 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 		- [3.3. Aren't other features such as generics and better error handling not more important right now?](#33-arent-other-features-such-as-generics-and-better-error-handling-not-more-important-right-now)
 		- [3.4. Why overload the `const` keyword instead of introducing a new keyword like `immutable` etc.?](#34-why-overload-the-const-keyword-instead-of-introducing-a-new-keyword-like-immutable-etc)
 		- [3.5. How are constants different from immutables?](#35-how-are-constants-different-from-immutables)
+		- [3.6. Why do we need immutable receivers if we already have copy-receivers?](#36-why-do-we-need-immutable-receivers-if-we-already-have-copy-receivers)
 
 ## 1. Introduction
 A Go 1 developer's current approach to immutability is copying because Go 1.x
@@ -417,6 +418,146 @@ func main() {
 immutables are not constants. If you want to prevent immutable objects from
 being mutated for sure - drop all mutable references to it as soon as it's
 created!
+
+----
+
+### 3.6. Why do we need immutable receivers if we already have copy-receivers?
+There's two reasons: safety and performance.
+
+**Copy-receivers don't prevent mutations!** They simply can't because of
+[pointer aliasing](https://en.wikipedia.org/wiki/Pointer_aliasing):
+
+```go
+type Object struct {
+	name     string
+	parent   *Object
+	children []*Object
+}
+
+// SetName is a non-const mutating method
+func (o *Object) SetName(newName string) {
+	o.name = newName
+}
+
+// ReadOnlyMethod is insidious because it verbally "promises"
+// to not touch the object while it still can do!
+// Even though it has a non-pointer receiver, the copy
+// can't get rid of aliasing and can thus mutate internals!
+func (o Object) ReadOnlyMethod() {
+	if len(o.children) > 0 {
+		// Mutating contextually immutable aliases is legal, VERY BAD!
+		o.children[0] = nil
+	}
+	if o.parent != nil {
+		// Call non-const method in immutable context is legal, VERY BAD!
+		o.parent.SetName("GOTCHA!")
+	}
+}
+
+func main() {
+	obj := &Object{
+		name:   "root",
+		parent: nil,
+	}
+	obj.children = []*Object{
+		&Object{
+			name:   "child_1",
+			parent: obj,
+		},
+		&Object{
+			name:   "child_2",
+			parent: obj,
+		},
+	}
+
+	fmt.Println("Root before:  ", obj)
+	fmt.Println("Child before: ", obj.children[0])
+
+	firstChild := obj.children[0]
+	firstChild.ReadOnlyMethod() // Will mutate parent's name
+
+	obj.ReadOnlyMethod() // Will mutate children list
+
+	fmt.Println("Root after:   ", obj)        // Children list mutated
+	fmt.Println("Child after:  ", firstChild) // Root name mutated
+}
+```
+https://play.golang.org/p/0kRSuVFkSMN
+
+**Copy-receivers are slow(er)**. Consider the following benchmark:
+```go
+type Object struct {
+	name    string
+	text    []rune
+	double  float64
+	integer int64
+	bytes   []byte
+}
+
+// PointerReceiver has a pointer receiver
+func (o *Object) PointerReceiver() (string, []rune, float64) {
+	return o.name, o.text, o.double
+}
+
+// CopyReceiver has a copy receiver
+func (o Object) CopyReceiver() (string, []rune, float64) {
+	return o.name, o.text, o.double
+}
+
+var name string
+var text []rune
+var double float64
+
+// BenchmarkPointerReceiver benchmarks the pointer-receiver method
+func BenchmarkPointerReceiver(b *testing.B) {
+	obj := &Object{}
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		name, text, double = obj.PointerReceiver()
+	}
+}
+
+// BenchmarkCopyReceiver benchmarks the copy-receiver method
+func BenchmarkCopyReceiver(b *testing.B) {
+	obj := &Object{}
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		name, text, double = obj.CopyReceiver()
+	}
+}
+```
+https://play.golang.org/p/2xgn7YMosXO
+
+The results should be similar to:
+```
+goos: windows
+goarch: amd64
+pkg: benchreceiver
+BenchmarkPointerReceiver-12     1000000000               2.12 ns/op
+BenchmarkCopyReceiver-12        300000000                4.23 ns/op
+PASS
+ok      benchreceiver   4.110s
+```
+_Windows 10; i7 3930K @ 3.80 Ghz_
+```
+goos: darwin
+goarch: amd64
+pkg: github.com/romshark/benchreceiver
+BenchmarkPointerReceiver-8    1000000000          2.05 ns/op
+BenchmarkCopyReceiver-8       300000000           4.62 ns/op
+PASS
+ok      benchreceiver   4.129s
+```
+_MacOS High Sierra (10.13); i7-4850HQ @ 2.30 GHz_
+
+Even though ~2 nanoseconds doesn't sound like much it's still twice as
+expensive to call.
+
+**Conclusion:** copy-receivers are not a solution, they make your code slower
+**without** providing any protection from [pointer
+aliasing](https://en.wikipedia.org/wiki/Pointer_aliasing), thus immutable
+receivers (be it an immutable copy or an immutable pointer receiver) are
+necessary to ensure compiler-enforced safety.
 
 ----
 Copyright © 2018 [Roman Sharkov](https://github.com/romshark)

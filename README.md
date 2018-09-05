@@ -28,6 +28,7 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 		- [3.2. Go is all about simplicity, so why make the language even more complicated?](#32-go-is-all-about-simplicity-so-why-make-the-language-even-more-complicated)
 		- [3.3. Aren't other features such as generics and better error handling not more important right now?](#33-arent-other-features-such-as-generics-and-better-error-handling-not-more-important-right-now)
 		- [3.4. Why overload the `const` keyword instead of introducing a new keyword like `immutable` etc.?](#34-why-overload-the-const-keyword-instead-of-introducing-a-new-keyword-like-immutable-etc)
+		- [3.5. How are constants different from immutables?](#35-how-are-constants-different-from-immutables)
 
 ## 1. Introduction
 A Go 1 developer's current approach to immutability is copying because Go 1.x
@@ -374,6 +375,48 @@ where the new keyword might be used for naming symbols causing build conflicts.
 keyword](https://golang.org/ref/spec#Keywords) which doesn't interfere with the
 proposed language changes and verbally comes close to the desired meaning (for
 example, C++ uses the `const` keyword to do just that).
+
+----
+
+### 3.5. How are constants different from immutables?
+**Short:** Constants are static in memory, while immutables are just
+write-protected references to mutable memory.
+
+**Long:** The value of a constant is defined during the compilation and remains
+a static piece of memory for the entire life time of your program. An immutable
+field, argument, return value, receiver or variable on the other hand is **not**
+static in memory, because it can still be mutated through mutable references:
+
+```go
+// CreateList creates a new slice and returns both, a mutable and an immutable
+// reference to it (which is bad! don't ever do that!
+// unless you know what you're after!)
+func CreateList(size int) (mutable []string, immutable const []string) {
+	newSlice := make([]string, size)
+	for i := 0; i < size; i++ {
+		newSlice[i] = "sample text"
+	}
+	return newSlice, const(newSlice)
+}
+
+func main() {
+	mutableReference, immutableReference := CreateList(10)
+
+	// Mutating an immutable return value is illegal
+	immutableReference[5] = "mutated" // Compile-time error
+
+	// Mutating the underlying array through a mutable reference is just fine!
+	mutableReference[5] = "mutated"
+
+	// You can now observe the mutation from the read-only immutable reference
+	immutableReference[5] // "mutated"
+}
+```
+
+**NOTICE:** the above code is **bad code**! Its purpose was to demonstrate that
+immutables are not constants. If you want to prevent immutable objects from
+being mutated for sure - drop all mutable references to it as soon as it's
+created!
 
 ----
 Copyright © 2018 [Roman Sharkov](https://github.com/romshark)

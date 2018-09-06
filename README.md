@@ -23,6 +23,7 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 		- [2.3. Immutable Arguments](#23-immutable-arguments)
 		- [2.4. Immutable Return Values](#24-immutable-return-values)
 		- [2.5. Immutable Variables](#25-immutable-variables)
+		- [2.6. Slice Aliasing](#26-slice-aliasing)
 	- [3. FAQ](#3-faq)
 		- [3.1. Are the items within immutable slices/maps also immutable?](#31-are-the-items-within-immutable-slicesmaps-also-immutable)
 		- [3.2. Go is all about simplicity, so why make the language even more complicated?](#32-go-is-all-about-simplicity-so-why-make-the-language-even-more-complicated)
@@ -344,6 +345,31 @@ func main() {
 .example.go:23:23 cannot assign to contextually immutable field `Object.MutableField` of type `*Object`
 .example.go:24:9 cannot call mutating method `Object.MutatingMethod` on immutable variable `obj` of type `const *Object`
 .example.go:25:19 cannot use obj (type const *Object) as type *Object in argument to MutateObject
+```
+
+### 2.6. Slice Aliasing
+Immutability of slices is always inherited from their parent slice. Sub-slicing
+immutable slices results in new immutable slices:
+```go
+func ReturnConstSlice() const []int {
+	return const([]int {1, 2, 3})
+}
+
+func main() {
+	originalSlice := const []int{1, 2, 3}
+	subSlice := originalSlice[:1]
+
+	originalSlice[0] = 4 // Compile-time error
+	subSlice[0] = 4      // Compile-time error
+
+	anotherSubSlice := ReturnConstSlice()[:1]
+	anotherSubSlice[0] = 4 // Compile-time error
+}
+```
+```
+.example.go:9:23 cannot assign to immutable variable of type `const []int`
+.example.go:10:18 cannot assign to immutable variable of type `const []int`
+.example.go:13:25 cannot assign to immutable variable of type `const []int`
 ```
 
 ## 3. FAQ

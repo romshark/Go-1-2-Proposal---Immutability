@@ -12,7 +12,7 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 		- [1.1. Current Problems](#11-current-problems)
 			- [1.1.1. Ambiguous Code and Dangerous Bugs](#111-ambiguous-code-and-dangerous-bugs)
 			- [1.1.2. Vague Documentation](#112-vague-documentation)
-			- [1.1.3. Slow Code](#113-slow-code)
+			- [1.1.3. The "Slow but Safe vs Dangerous but Fast" Dilemma](#113-the-%22slow-but-safe-vs-dangerous-but-fast%22-dilemma)
 		- [1.2. Benefits](#12-benefits)
 			- [1.2.1. Safe Code](#121-safe-code)
 			- [1.2.2. Self-Explaining Code](#122-self-explaining-code)
@@ -80,11 +80,13 @@ We have to manually document what can be mutated and what the code user **must
 not** mutate. Not only does this unnecessarily complicate the documentation, it
 also makes it error prone and redundant.
 
-#### 1.1.3. Slow Code
-Copies slow down our code and thus encourage us to write unsafe mutable APIs
-when targeting optimal performance. We have to choose between performance and
-safety even though having both would be possible with compiler-enforced
-immutability at the cost of a slightly decreased compilation time.
+#### 1.1.3. The "Slow but Safe vs Dangerous but Fast" Dilemma
+As previously mentioned, copies are the only way to achieve immutability in Go
+1.x, but copies degrade runtime performance. This dilemma encourage us to write
+unsafe mutable APIs when targeting optimal runtime performance. We have to
+choose between performance and safety even though having both would be possible
+with compiler-enforced immutability at the cost of a slightly decreased
+compilation time.
 
 ### 1.2. Benefits
 

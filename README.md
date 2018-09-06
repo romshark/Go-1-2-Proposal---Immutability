@@ -10,13 +10,13 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 - [Go 2 - Immutability](#go-2---immutability)
 	- [1. Introduction](#1-introduction)
 		- [1.1. Current Problems](#11-current-problems)
-			- [1.1.1. Slow Code](#111-slow-code)
+			- [1.1.1. Ambiguous Code and Dangerous Bugs](#111-ambiguous-code-and-dangerous-bugs)
 			- [1.1.2. Vague Documentation](#112-vague-documentation)
-			- [1.1.3. Potentially Undefined Behavior](#113-potentially-undefined-behavior)
+			- [1.1.3. Slow Code](#113-slow-code)
 		- [1.2. Benefits](#12-benefits)
-			- [1.2.1. Fast Code](#121-fast-code)
-			- [1.2.2. Safe Code](#122-safe-code)
-			- [1.2.3. Self-Explaining Code](#123-self-explaining-code)
+			- [1.2.1. Safe Code](#121-safe-code)
+			- [1.2.2. Self-Explaining Code](#122-self-explaining-code)
+			- [1.2.3. Increased Runtime Performance](#123-increased-runtime-performance)
 	- [2. Proposed Language Changes](#2-proposed-language-changes)
 		- [2.1. Immutable Fields](#21-immutable-fields)
 		- [2.2. Immutable Methods](#22-immutable-methods)
@@ -32,39 +32,108 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 		- [3.6. Why do we need immutable receivers if we already have copy-receivers?](#36-why-do-we-need-immutable-receivers-if-we-already-have-copy-receivers)
 
 ## 1. Introduction
-A Go 1 developer's current approach to immutability is copying because Go 1.x
-doesn't currently provide any immutability annotations.
+Immutability is a technique to prevent undesired mutations by annotating
+immutable symbols like variables, arguments, fields, return values and methods
+for both security and performance reasons. A Go 1.11 developer's current
+approach to immutability is manual copying because it doesn't currently provide
+any compiler-enforced immutability annotations. This makes Go 1.x harder to work
+with because immutability isn't rigidly guaranteed by the compiler, which can
+lead to hard to find bugs.
+
+Ideally a programming language should enforce immutability by default while the
+developers must explicitly annotate mutable symbols as such, but this concept
+would require significant, backwards-incompatible languages changes breaking
+existing Go 1.x code. To prevent breaking Go 1.x compatibility this document
+describe an approach to immutability by overloading the `const` keyword ([see
+here for more
+details](#34-why-overload-the-const-keyword-instead-of-introducing-a-new-keyword-like-immutable-etc))
+to act as an immutable type qualifier similar to languages like C++. Symbols
+annotated as immutables are checked for mutations during the compilation phase
+resulting in compile-time errors. There is no runtime cost to this approach but
+a slight compile-time cost is still required.
 
 ### 1.1. Current Problems
-The current approach to immutability has a number of serious disadvantages
-listed below
 
-#### 1.1.1. Slow Code
-Copies slow down our code and thus encourage us to write unsafe mutable APIs
-when targeting optimal performance, you have to choose between performance or
-safety.
+The current approach to immutability has a number of disadvantages listed below
+and sorted by importance in descending order.
+
+#### 1.1.1. Ambiguous Code and Dangerous Bugs
+The absence of immutability annotations can lead to ambiguous code that results
+in dangerous, hard to find bugs.
+
+Imagine the following situation: you add a new 3-rd party package `xyz` to your
+project as an external dependency. This package provides an exported function
+`xyz.ReadSlice(slice []string)` the documentation of which promises that the
+provided slice of strings will not be mutated, so you write your code with this
+assumption in mind.
+
+At any time though the vendor of the external package might change its behavior
+either intentionally (updating the documentation) or unintentionally (the slice
+might get aliased and thus unintentionally mutate the original slice somewhere
+in the depths of the package or it's external dependencies). Chances are high
+that either you miss the changed documentation or the behavior of the code
+changes without acknowledging you at all in the worst case! This can obviously
+lead to serious and hard to find bugs.
 
 #### 1.1.2. Vague Documentation
-We have to manually describe what can be mutated and what the code user **must
-not** mutate. This unnecessarily complicates the documentation and makes it
-error prone.
+We have to manually document what can be mutated and what the code user **must
+not** mutate. Not only does this unnecessarily complicate the documentation, it
+also makes it error prone and redundant.
 
-#### 1.1.3. Potentially Undefined Behavior
-Mutating what shouldn't be mutated can cause undefined behavior.
+#### 1.1.3. Slow Code
+Copies slow down our code and thus encourage us to write unsafe mutable APIs
+when targeting optimal performance. We have to choose between performance and
+safety even though having both would be possible with compiler-enforced
+immutability at the cost of a slightly decreased compilation time.
 
 ### 1.2. Benefits
-Immutability can give us the following benefits:
 
-#### 1.2.1. Fast Code
-No need to make unnecessary copies and compromises between safety and
-performance.
+The addition of immutability support would provide the benefits listed below
+and sorted by importance in descending order.
 
-#### 1.2.2. Safe Code
-A compile-time guarantee to avoid any undefined behavior that could have been
-caused by violating immutability recommendations.
+#### 1.2.1. Safe Code
+With immutability annotations the situation described in the [previous
+section](#113-ambiguous-code-and-dangerous-bugs) wouldn't be possible with
+immutability support, because the author of the function of the external package
+would need to explicitly denote the argument as immutable to make the compiler
+enforce the guarantee, while the user of the function would make decisions based
+on the actual function declaration instead of relying on the potentially
+inconsistent documentation.
 
-#### 1.2.3. Self-Explaining Code
-No need to explicitly describe mutability recommendations in the documentation.
+This way - when ever you see a mutable reference type argument you'll know you
+have to assume that the state of the referenced object will potentially be
+mutated. Contrary you can safely assume that the referenced object won't be
+mutated if it's declared immutable.
+
+If the vendor of the external function decides to change the mutability of an
+argument he/she will have to change the function declaration introducing
+breaking API changes causing you to pay attention to whether or not everything's
+right. The vendor won't be able to just silently mutate your objects referenced
+by immutable references! The compiler will prevent this either before the vendor
+releases the update (assuming that the code is compiled before publication by a
+CI system) or during your local build (in the worst case) preventing insidious
+bugs from being introduces.
+
+#### 1.2.2. Self-Explaining Code
+With immutability annotations there's no need to explicitly describe mutability
+recommendations in the documentation. When immutable types are declared as such
+then the code becomes self-explaining:
+- If you see an immutable argument - you can rely on it not being changed
+  neither inside the function itself, nor inside any other functions this
+  function calls etc.
+- If you see an immutable method (or a "function with an immutable receiver" if
+  you will) - you can rely on it not changing the object.
+- If you return an immutable return value - you can rely on it not being
+  mutated by the function caller.
+- If you see an immutable field - you can rely on it not being changed as soon
+  as the object is initialized, even inside its origin package.
+- If you see an immutable variable - you can rely on it not being changed in the
+  context it's in as well as the contexts it's passed over to.
+
+#### 1.2.3. Increased Runtime Performance
+Immutability provides a way to safely avoid unnecessary copying. The compiler
+can also make optimizations based on the immutability of certain objects known
+at compile time.
 
 ## 2. Proposed Language Changes
 The following 5 changes need to be made to the language to fully fulfill this

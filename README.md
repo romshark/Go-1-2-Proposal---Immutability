@@ -96,12 +96,12 @@ and sorted by importance in descending order.
 
 #### 1.2.1. Safe Code
 With immutability annotations the situation described in the [previous
-section](#113-ambiguous-code-and-dangerous-bugs) wouldn't be possible with
-immutability support, because the author of the function of the external package
-would need to explicitly denote the argument as immutable to make the compiler
-enforce the guarantee, while the user of the function would make decisions based
-on the actual function declaration instead of relying on the potentially
-inconsistent documentation.
+section](#113-ambiguous-code-and-dangerous-bugs) wouldn't even be possible,
+because the author of the function of the external package would need to
+explicitly denote the argument as immutable to make the compiler enforce the
+guarantee, while the user of the function would make decisions based on the
+actual function declaration instead of relying on the potentially inconsistent
+documentation.
 
 This way - when ever you see a mutable reference type argument you'll know you
 have to assume that the state of the referenced object will potentially be

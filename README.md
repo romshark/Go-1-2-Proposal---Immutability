@@ -43,7 +43,7 @@ lead to hard to find bugs.
 
 Ideally a programming language should enforce immutability by default while the
 developers must explicitly annotate mutable symbols as such, but this concept
-would require significant, backwards-incompatible languages changes breaking
+would require significant, backwards-incompatible language changes breaking
 existing Go 1.x code. To prevent breaking Go 1.x compatibility this document
 describe an approach to immutability by overloading the `const` keyword ([see
 here for more

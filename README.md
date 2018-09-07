@@ -159,7 +159,7 @@ immutable for the entire lifetime of the object within any context.
 
 ```go
 type Object struct {
-	ImmutableField const *Object // Immutable
+	ImmutableField const * const Object // Immutable
 	MutableField   *Object       // Mutable
 }
 
@@ -184,9 +184,9 @@ func main() {
 ```
 **Expected compilation errors:**
 ```
-.example.go:9:23 cannot assign to immutable field `Object.ImmutableField` of type `const *Object`
-.example.go:21:25 cannot assign to immutable field `Object.ImmutableField` of type `const *Object`
-.example.go:22:40 cannot assign to immutable field `Object.ImmutableField` of type `const *Object`
+.example.go:9:23 cannot assign to immutable field `Object.ImmutableField` of type `const * const Object`
+.example.go:21:25 cannot assign to immutable field `Object.ImmutableField` of type `const * const Object`
+.example.go:22:40 cannot assign to immutable field `Object.ImmutableField` of type `const * const Object`
 ```
 
 ----
@@ -205,7 +205,7 @@ type Object struct {
 }
 
 // MutatingMethod is a non-const method.
-func (o *Object) MutatingMethod() const *Object {
+func (o *Object) MutatingMethod() const * const Object {
     o.mutableField = &Object{}
     return o.ImmutableMethod()
 }
@@ -213,7 +213,7 @@ func (o *Object) MutatingMethod() const *Object {
 // ImmutableMethod is a const method.
 // It's illegal to mutate any fields of the receiver.
 // It's illegal to call mutating methods of the receiver
-func (o const *Object) ImmutableMethod() const *Object {
+func (o * const Object) ImmutableMethod() const * const Object {
     o.MutatingMethod()         // Compile-time error
     o.mutableField = &Object{} // Compile-time error
     return o.mutableField
@@ -227,9 +227,9 @@ func main() {
 ```
 **Expected compilation errors:**
 ```
-.example.go:15:7 cannot call mutating method `Object.MutatingMethod` on immutable receiver `o` of type `const *Object`
+.example.go:15:7 cannot call mutating method `Object.MutatingMethod` on immutable receiver `o` of type `const * const Object`
 .example.go:16:21 cannot assign to contextually immutable field `Object.mutableField` of type `*Object`
-.example.go:23:9 cannot call mutating method `Object.MutatingMethod` on contextually immutable variable `obj` of type `const *Object`
+.example.go:23:9 cannot call mutating method `Object.MutatingMethod` on contextually immutable variable `obj` of type `const * const Object`
 ```
 
 ----
@@ -248,7 +248,7 @@ type Object struct {
 func (o *Object) MutatingMethod() {}
 
 // ImmutableMethod is a const method
-func (o const *Object) ImmutableMethod() {}
+func (o * const Object) ImmutableMethod() {}
 
 // MutateObject mutates the given object
 func MutateObject(obj *Object) {
@@ -258,7 +258,7 @@ func MutateObject(obj *Object) {
 // ReadObj is guaranteed to only read the object passed by the argument
 // without mutating it in any way
 func ReadObj(
-	obj const *Object // Immutable
+	obj * const Object // Immutable
 ) {
 	MutateObject(obj)            // Compile-time error
 	obj.MutatingMethod()         // Compile-time error
@@ -267,8 +267,8 @@ func ReadObj(
 ```
 **Expected compilation errors:**
 ```
-.example.go:21:19 cannot use obj (type const *Object) as type *Object in argument to MutateObject
-.example.go:22:9 cannot call mutating method `Object.MutatingMethod` on immutable variable `obj` of type `const *Object`
+.example.go:21:19 cannot use obj (type * const Object) as type *Object in argument to MutateObject
+.example.go:22:9 cannot call mutating method `Object.MutatingMethod` on immutable variable `obj` of type `* const Object`
 .example.go:23:23 cannot assign to contextually immutable field `Object.MutableField` of type `*Object`
 ```
 
@@ -288,7 +288,7 @@ func (p *Object) MutatingMethod() {
 }
 
 // ReturnImmutable returns an immutable value
-func ReturnImmutable() const *Object {
+func ReturnImmutable() const * const Object {
 	return &Object{MutableField: &Object{
 		MutableField: &Object{},
 	}}
@@ -303,8 +303,8 @@ func main() {
 ```
 **Expected compilation errors:**
 ```
-.example.go:20:37 cannot assign to field `Object.MutableField` of contextually immutable variable `immutableVariable` of type `const *Object`
-.example.go:21:23 cannot call function `Object.MutatingMethod` with non-const receiver on contextually immutable variable `immutableVariable` of type `const *Object`
+.example.go:20:37 cannot assign to field `Object.MutableField` of contextually immutable variable `immutableVariable` of type `const * const Object`
+.example.go:21:23 cannot call function `Object.MutatingMethod` with non-const receiver on contextually immutable variable `immutableVariable` of type `const * const Object`
 ```
 
 ----
@@ -321,7 +321,7 @@ type Object struct {
 func (o *Object) MutatingMethod() {}
 
 // ImmutableMethod is a const method
-func (o const *Object) ImmutableMethod() {}
+func (o * const Object) ImmutableMethod() {}
 
 // NewObject creates and returns a new mutable object instance
 func NewObject() *Object {
@@ -343,8 +343,8 @@ func main() {
 **Expected compilation errors:**
 ```
 .example.go:23:23 cannot assign to contextually immutable field `Object.MutableField` of type `*Object`
-.example.go:24:9 cannot call mutating method `Object.MutatingMethod` on immutable variable `obj` of type `const *Object`
-.example.go:25:19 cannot use obj (type const *Object) as type *Object in argument to MutateObject
+.example.go:24:9 cannot call mutating method `Object.MutatingMethod` on immutable variable `obj` of type `const * const Object`
+.example.go:25:19 cannot use obj (type const * const Object) as type *Object in argument to MutateObject
 ```
 
 ### 2.6. Slice Aliasing
@@ -383,9 +383,9 @@ type ImmutableMap   const map[*Object]*Object
 If you want the items of an immutable slice/map to be immutable as well, you'll
 need to declare them using the `const` qualifier:
 ```go
-type ImmutableSlice     const [] const *Object
-type ImmutableMap       const map[*Object] const *Object
-type ImmutableMapAndKey const map[const *Object] const *Object
+type ImmutableSlice     const [] const * const Object
+type ImmutableMap       const map[*Object] const * const Object
+type ImmutableMapAndKey const map[const * const Object] const * const Object
 ```
 A deeply-immutable matrix could therefore be declared the following way:
 ```go
@@ -464,7 +464,7 @@ This certainly makes both code and documentation more complicated and error
 prone (and slow) than it could be with immutability:
 ```go
 // ConnectedClients returns the list of all currently connected clients.
-func (s const *Server) ConnectedClients() const []Client {
+func (s * const Server) ConnectedClients() const []Client {
 	return s.clients
 }
 ```

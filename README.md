@@ -23,7 +23,8 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 		- [2.3. Immutable Arguments](#23-immutable-arguments)
 		- [2.4. Immutable Return Values](#24-immutable-return-values)
 		- [2.5. Immutable Variables](#25-immutable-variables)
-		- [2.6. Slice Aliasing](#26-slice-aliasing)
+		- [2.6. Immutable interface methods](#26-immutable-interface-methods)
+		- [2.7. Slice Aliasing](#27-slice-aliasing)
 	- [3. FAQ](#3-faq)
 		- [3.1. Are the items within immutable slices/maps also immutable?](#31-are-the-items-within-immutable-slicesmaps-also-immutable)
 		- [3.2. Go is all about simplicity, so why make the language more complicated?](#32-go-is-all-about-simplicity-so-why-make-the-language-more-complicated)
@@ -190,6 +191,7 @@ func main() {
 ```
 
 ----
+
 ### 2.2. Immutable Methods
 Immutable methods are declared using the `const` qualifier on the function
 receiver and guarantee to not mutate the receiver in any way when called.
@@ -233,6 +235,7 @@ func main() {
 ```
 
 ----
+
 ### 2.3. Immutable Arguments
 Immutable arguments are declared using the `const` qualifier and guaranteed to
 not be mutated by the receiving function. Mutating any mutable fields of the
@@ -273,6 +276,7 @@ func ReadObj(
 ```
 
 ----
+
 ### 2.4. Immutable Return Values
 Immutable return values are declared using the `const` qualifier and guarantee
 that the returned objects will be immutable in any receiving context.
@@ -308,6 +312,7 @@ func main() {
 ```
 
 ----
+
 ### 2.5. Immutable Variables
 Immutable variables are declared using the `const` qualifier and guarantee
 to not be mutated within any context.
@@ -347,7 +352,77 @@ func main() {
 .example.go:25:19 cannot use obj (type const * const Object) as type *Object in argument to MutateObject
 ```
 
-### 2.6. Slice Aliasing
+### 2.6. Immutable interface methods
+Immutable methods of an interface are declared using the `const` qualifier and
+guarantee that const-methods of the object implementing the interface will not
+mutate the underlying object.
+```go
+type Interface interface {
+	// Read must not mutate the underlying implementation
+	const Read(offset, length const int) const []byte
+
+	// Write can mutate the underlying implementation
+	Write(offset const int, data const []byte) int
+}
+
+// ValidImplementation represents an correct implementation
+// of the Interface interface
+type ValidImplementation struct {
+	buffer []byte
+}
+
+// Read implements the const method, it must have an immutable receiver
+func (ci * const ValidImplementation) Read(
+	offset, length const int,
+) const []byte {
+	return const(ci.buffer[offset : offset+length])
+}
+
+// Write implements the non-const method,
+// it can either have a mutable or an immutable receiver
+func (ci *ValidImplementation) Write(
+	offset const int, data const []byte,
+) int {
+	itr := 0
+	for ; itr < len(ci.buffer) && itr < len(data); itr++ {
+		i.buffer[itr + offset] = data[i]
+	}
+	return itr + 1
+}
+
+// InvalidImplementation represents an incorrect implementation
+// of the Interface interface
+type InvalidImplementation struct {
+	buffer []byte
+}
+
+// Read tries to implement the const method using a mutable receiver
+func (ci *InvalidImplementation) Read(
+	offset, length const int,
+) const []byte {
+	/*...*/
+}
+
+func (ci *InvalidImplementation) Write(
+	offset const int, data const []byte,
+) int {
+	/*...*/
+	return 0
+}
+
+func main() {
+	var iface Interface = &InvalidImplementation
+	iface.Write(0, const([]byte("example")))
+}
+```
+```
+.example.go:55:26: cannot use InvalidImplementation literal (type *InvalidImplementation) as type Interface in assignment:
+	*InvalidImplementation does not implement Interface (Read method has mutable pointer receiver, expected an immutable receiver type)
+```
+
+----
+
+### 2.7. Slice Aliasing
 Immutability of slices is always inherited from their parent slice. Sub-slicing
 immutable slices results in new immutable slices:
 ```go

@@ -26,7 +26,7 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 		- [2.6. Slice Aliasing](#26-slice-aliasing)
 	- [3. FAQ](#3-faq)
 		- [3.1. Are the items within immutable slices/maps also immutable?](#31-are-the-items-within-immutable-slicesmaps-also-immutable)
-		- [3.2. Go is all about simplicity, so why make the language even more complicated?](#32-go-is-all-about-simplicity-so-why-make-the-language-even-more-complicated)
+		- [3.2. Go is all about simplicity, so why make the language more complicated?](#32-go-is-all-about-simplicity-so-why-make-the-language-more-complicated)
 		- [3.3. Aren't other features such as generics and better error handling not more important right now?](#33-arent-other-features-such-as-generics-and-better-error-handling-not-more-important-right-now)
 		- [3.4. Why overload the `const` keyword instead of introducing a new keyword like `immutable` etc.?](#34-why-overload-the-const-keyword-instead-of-introducing-a-new-keyword-like-immutable-etc)
 		- [3.5. How are constants different from immutables?](#35-how-are-constants-different-from-immutables)
@@ -394,14 +394,37 @@ type ImmutableMatrix const [] const [] int
 
 ---
 
-### 3.2. Go is all about simplicity, so why make the language even more complicated?
-The `const` qualifier **doesn't** make Go "more complicated", instead it's
-**just the opposite**! The complexity created by unsafe mutable references
-**is** what makes
-Go more complicated to work with, because you always have to remember to copy
-stuff that you don't want others to be able to mutate, or at least explicitly
-advise to "not mutate certain stuff" in the documentation running the risk of
-breaking your inattentive colleague's code:
+### 3.2. Go is all about simplicity, so why make the language more complicated?
+The `const` qualifier adds only a little cognitive overhead:
+- When declaring a **function argument** we have to know whether we want to be
+  able to change its state and make it immutable if we don't.
+- When declaring a **struct field** we have to know, whether we want the state
+  of this field to remain unchangeable, during the lifetime of an object
+  instantiated from this struct, as soon as it's initialized.
+- When declaring a **return value** we have to know whether we want to give the
+  caller the permission to modify the object we returned.
+- When declaring a **variable** we have to know, whether we want to change it
+  in this context.
+- When declaring a **function receiver** we have to know, whether this function
+  will change anything inside the receiver.
+- When declaring a **reference type** such as a pointer, a slice or a map we
+  have to know whether we want to:
+	- make the object changeable, but not the its reference
+	- make the actual reference changeable, but not the object it references
+	- make both the reference and the object changeable
+
+This additional cognitive overhead, prevents us from introducing the complexity
+created by mutable shared state. Bugs introduces through mutable shared state
+are very dangerous, hard to notice, hard to identify and pretty hard to fix.
+Justifying the simplicity of a language which can lead to very complex bugs is
+rather incorrect when considering the insignificant overhead of the `const`
+qualifier. Thus immutability is a feature the overhead of which outweighs the
+disadvantages of not having it.
+
+**Example:** You always have to remember to copy stuff that you don't want
+others to be able to mutate, or at least explicitly advise to "not mutate
+certain stuff" in the documentation running the risk of breaking your
+inattentive colleague's code:
 
 ```go
 // ConnectedClients returns the list of all currently connected clients.
@@ -445,12 +468,6 @@ func (s const *Server) ConnectedClients() const []Client {
 	return s.clients
 }
 ```
-**Conclusion**: Compiler-enforced restrictions to what is expected to be mutable
-and what is not makes your code more readable for both you and other developers
-working with your code/library and potentially saves you hours of debugging
-broken code caused by mutable references. Essentially immutability is a strict
-contract enforced by the compiler, and Go encourages compile-time safety by its
-nature.
 
 ---
 

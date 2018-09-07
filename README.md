@@ -386,7 +386,7 @@ func (ci *ValidImplementation) Write(
 ) int {
 	itr := 0
 	for ; itr < len(ci.buffer) && itr < len(data); itr++ {
-		i.buffer[itr + offset] = data[i]
+		ci.buffer[itr + offset] = data[itr]
 	}
 	return itr + 1
 }

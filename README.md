@@ -32,6 +32,7 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 		- [3.4. Why overload the `const` keyword instead of introducing a new keyword like `immutable` etc.?](#34-why-overload-the-const-keyword-instead-of-introducing-a-new-keyword-like-immutable-etc)
 		- [3.5. How are constants different from immutables?](#35-how-are-constants-different-from-immutables)
 		- [3.6. Why do we need immutable receivers if we already have copy-receivers?](#36-why-do-we-need-immutable-receivers-if-we-already-have-copy-receivers)
+		- [3.7. Why do we need immutable interfaces?](#37-why-do-we-need-immutable-interfaces)
 
 ## 1. Introduction
 Immutability is a technique to prevent undesired mutations by annotating
@@ -747,6 +748,36 @@ expensive to call.
 aliasing](https://en.wikipedia.org/wiki/Pointer_aliasing), thus immutable
 receivers (be it an immutable copy or an immutable pointer receiver) are
 necessary to ensure compiler-enforced safety.
+
+### 3.7. Why do we need immutable interfaces?
+Immutable interfaces guarantee that you can't call mutating methods of the
+underlying implementation through it. Passing an immutable interface to a
+function as an argument while trying to call a non-const method on it, for
+example, would generate a compile-time error:
+```go
+type Interface {
+	const Read()
+	Write()
+}
+
+type Implementation struct {}
+func (i * const Implementation) ReadOnly() {}
+func (i * Implementation) Write() {}
+
+// ReadInterface will not be able to execute non-const methods of the interface
+func ReadInterface(iface const Interface) {
+	iface.ReadOnly() // fine
+	iface.Write()    // Compile-time error
+}
+
+func main() {
+	iface := &Implementation{}
+	ReadInterface(const(iface))
+}
+```
+```
+.example:13:11: cannot call method mutating method on immutable interface iface of type `const Interface`
+```
 
 ----
 Copyright © 2018 [Roman Sharkov](https://github.com/romshark)

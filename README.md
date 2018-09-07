@@ -23,7 +23,7 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 		- [2.3. Immutable Arguments](#23-immutable-arguments)
 		- [2.4. Immutable Return Values](#24-immutable-return-values)
 		- [2.5. Immutable Variables](#25-immutable-variables)
-		- [2.6. Immutable interface methods](#26-immutable-interface-methods)
+		- [2.6. Immutable Interface Methods](#26-immutable-interface-methods)
 		- [2.7. Slice Aliasing](#27-slice-aliasing)
 	- [3. FAQ](#3-faq)
 		- [3.1. Are the items within immutable slices/maps also immutable?](#31-are-the-items-within-immutable-slicesmaps-also-immutable)
@@ -353,7 +353,7 @@ func main() {
 .example.go:25:19 cannot use obj (type const * const Object) as type *Object in argument to MutateObject
 ```
 
-### 2.6. Immutable interface methods
+### 2.6. Immutable Interface Methods
 Immutable methods of an interface are declared using the `const` qualifier and
 guarantee that const-methods of the object implementing the interface will not
 mutate the underlying object.

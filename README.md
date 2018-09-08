@@ -33,6 +33,18 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 		- [3.5. How are constants different from immutables?](#35-how-are-constants-different-from-immutables)
 		- [3.6. Why do we need immutable receivers if we already have copy-receivers?](#36-why-do-we-need-immutable-receivers-if-we-already-have-copy-receivers)
 		- [3.7. Why do we need immutable interfaces?](#37-why-do-we-need-immutable-interfaces)
+		- [3.8. What's the difference between *immutable references* and *references to immutables*?](#38-whats-the-difference-between-immutable-references-and-references-to-immutables)
+			- [Immutable pointer to mutable object](#immutable-pointer-to-mutable-object)
+			- [Mutable pointer to immutable object](#mutable-pointer-to-immutable-object)
+			- [Immutable pointer to immutable object](#immutable-pointer-to-immutable-object)
+			- [Immutable slice of immutable objects](#immutable-slice-of-immutable-objects)
+			- [Mutable slice of immutable objects](#mutable-slice-of-immutable-objects)
+			- [Immutable slice of mutable objects](#immutable-slice-of-mutable-objects)
+			- [Mutable slice of mutable objects](#mutable-slice-of-mutable-objects)
+			- [Mutable map of immutable keys to mutable objects](#mutable-map-of-immutable-keys-to-mutable-objects)
+			- [Mutable map of mutable keys to immutable objects](#mutable-map-of-mutable-keys-to-immutable-objects)
+			- [Mutable map of immutable keys to immutable objects](#mutable-map-of-immutable-keys-to-immutable-objects)
+			- [Immutable map of immutable keys to immutable objects](#immutable-map-of-immutable-keys-to-immutable-objects)
 
 ## 1. Introduction
 Immutability is a technique to prevent undesired mutations by annotating
@@ -779,6 +791,155 @@ func main() {
 ```
 ```
 .example:13:11: cannot call method mutating method on immutable interface iface of type `const Interface`
+```
+
+----
+
+### 3.8. What's the difference between *immutable references* and *references to immutables*?
+Reference-types such as pointers, slices and maps can be immutable while still
+referencing mutable objects. This is useful in many cases such as:
+- When we need a slice to be mutable so we can add new items to it, remove items
+  from it and replace/swap items inside it, but the actual items should remain
+  immutable: `var mutableSlice [] const T`
+- When we need a pointer to be immutable to prevent it from pointing to anything
+  other than a certain object, which should be mutable though:
+  `var immutablePointer const * T`
+- When we need only the keys of a mutable map to be immutable so we can add /
+  remove / replace and mutate values but not mutate the keys:
+  `var mutableMap map [const T] T`
+- When we need any other possible combination of mutable and immutable types...
+
+#### Immutable pointer to mutable object
+
+```go
+var immut2mut const *Object = &Object{}
+
+immut2mut = &Object{} // violation!
+immut2mut.Field = 42  // fine
+immut2mut.Mutation()  // fine
+```
+
+#### Mutable pointer to immutable object
+
+```go
+var mut2immut * const Object = &Object{}
+
+mut2immut = &Object{} // fine
+mut2immut.Field = 42  // violation!
+mut2immut.Mutation()  // violation!
+```
+
+#### Immutable pointer to immutable object
+```go
+var immut2immut const * const Object = const(&Object{})
+
+immut2immut = &Object{} // violation!
+immut2immut.Field = 42  // violation!
+immut2immut.Mutation()  // violation!
+```
+
+#### Immutable slice of immutable objects
+
+```go
+var immut2immut const [] const Object
+immut2immut = append(immut2immut, Object{}) // violation!
+immut2immut[0] = Object{}                   // violation!
+
+obj := immut2immut[0]
+obj.Mutation() // violation!
+```
+
+#### Mutable slice of immutable objects
+
+```go
+var mut2immut [] const Object
+mut2immut = append(mut2immut, Object{}) // fine
+mut2immut[0] = Object{}                 // fine
+
+obj := mut2immut[0]
+obj.Mutation() // violation!
+```
+
+#### Immutable slice of mutable objects
+
+```go
+var immut2mut const [] Object
+immut2mut = append(immut2mut, Object{}) // violation!
+immut2mut[0] = Object{}                 // violation!
+
+obj := immut2mut[0]
+obj.Mutation() // fine
+```
+
+#### Mutable slice of mutable objects
+
+```go
+var mut2mut [] Object
+mut2mut = append(mut2mut, Object{}) // fine
+mut2mut[0] = Object{}               // fine
+
+obj := mut2mut[0]
+obj.Mutation() // fine
+```
+
+#### Mutable map of immutable keys to mutable objects
+
+```go
+var mut_immut2mut map[const Object] Object
+
+newKey := const(Object{})
+mut_immut2mut[newKey] = Object{} // fine
+delete(mut_immut2mut, newKey)    // fine
+
+for key, value := range mut_immut2mut {
+	key.Mutation()   // violation!
+	value.Mutation() // fine
+}
+```
+
+#### Mutable map of mutable keys to immutable objects
+
+```go
+var mut_mut2immut map[Object] const Object
+
+newKey := Object{}
+mut_mut2immut[newKey] = const(Object{}) // fine
+delete(mut_mut2immut, newKey)           // fine
+
+for key, value := range mut_mut2immut {
+	key.Mutation()   // fine
+	value.Mutation() // violation!
+}
+```
+
+#### Mutable map of immutable keys to immutable objects
+
+```go
+var immut_immut2immut map[const Object] const Object
+
+newKey := const(Object{})
+immut_immut2immut[newKey] = const(Object{}) // fine
+delete(immut_immut2immut, newKey)           // fine
+
+for key, value := range immut_immut2immut {
+	key.Mutation()   // violation!
+	value.Mutation() // violation!
+}
+```
+
+#### Immutable map of immutable keys to immutable objects
+
+```go
+var m const map[const Object] const Object
+
+newKey := const(Object{})
+m[newKey] = const(Object{}) // violation!
+delete(m, newKey)           // violation!
+
+for key, value := range m {
+	key.Mutation()   // violation!
+	value.Mutation() // violation!
+}
 ```
 
 ----

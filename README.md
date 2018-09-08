@@ -45,6 +45,7 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 			- [Mutable map of mutable keys to immutable objects](#mutable-map-of-mutable-keys-to-immutable-objects)
 			- [Mutable map of immutable keys to immutable objects](#mutable-map-of-immutable-keys-to-immutable-objects)
 			- [Immutable map of immutable keys to immutable objects](#immutable-map-of-immutable-keys-to-immutable-objects)
+		- [3.9. Doesn't the `const` qualifier add boilerplate and make code harder to read?](#39-doesnt-the-const-qualifier-add-boilerplate-and-make-code-harder-to-read)
 
 ## 1. Introduction
 Immutability is a technique to prevent undesired mutations by annotating
@@ -939,6 +940,74 @@ delete(m, newKey)           // violation!
 for key, value := range m {
 	key.Mutation()   // violation!
 	value.Mutation() // violation!
+}
+```
+
+### 3.9. Doesn't the `const` qualifier add boilerplate and make code harder to read?
+**Short answer**: No, it doesn't and it can be quite the opposite.
+
+**Long answer**: Let's pretend we need to write a method with the following
+constraints:
+- It must take a slice of pointers to objects of type `Object` as argument `s`.
+- It must return all objects from an internal slice.
+- It must use the function `Dependency` that's exported from a third-party
+  package `thirdparty` and pass `s` to it.
+- The `thirdparty.Dependency` function doesn't specify whether or not it'll
+  mutate `s` in the documentation.
+- It **must not mutate** `s`, neither the slice nor the referenced objects!
+- It must ensure the internal slice **cannot be mutated** from the outside!
+- It must ensure, that the receiver **is not mutated** in any way!
+
+Our current approach would be copying, because there's no other way to ensure
+immutability.
+```go
+/* WITHOUT IMMUTABILITY */
+
+func (rec *T) OurMethod(s []*Object) [] *Object {
+	s_copy := make([] *Object, len(s))
+	for i, item := range s {
+		// Clone the items to get rid of aliasing
+		// Copying an aliased slice wouldn't make any sense otherwise
+		s_copy[i] = item.Clone()
+	}
+
+	// Pass a copy of "s" to third-party function to ensure it doesn't modify it
+	thirdparty.Dependency(s_copy)
+
+	// Now return a deep copy of the internal slice to prevent any mutations
+	internal_copy := make([] *Object, len(rec.internal))
+	for i, item := range rec.internal {
+		// Clone to avoid aliasing
+		// Copying an aliased slice wouldn't make any sense otherwise
+		internal_copy[i] = item.Clone()
+	}
+	return internal_copy
+}
+```
+
+Now feel free to remove the comments and compare the above copy-bloated code
+with the code protected by the `const` qualifier:
+
+```go
+/* WITH IMMUTABILITY */
+
+func (rec * const T) OurMethod(
+    s const [] * const Object,
+) const [] * const Object {
+  thirdparty.Dependency(s)   // safe
+  return const(rec.internal) // safe
+}
+```
+
+If you don't like the rather verbose type definitions then consider using type
+aliasing to shorten the code even more:
+
+```go
+type ConstSlice const [] * const Object
+
+func (rec * const T) OurMethod(s ConstSlice) ConstSlice {
+  thirdparty.Dependency(s)
+  return rec.internal
 }
 ```
 

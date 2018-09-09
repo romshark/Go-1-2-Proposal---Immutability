@@ -275,8 +275,10 @@ func MutateObject(obj *Object) {
 // ReadObj is guaranteed to only read the object passed by the argument
 // without mutating it in any way
 func ReadObj(
-	obj * const Object // Immutable
+	obj * const Object // Mutable reference to immutable object
 ) {
+	obj = nil // fine, because the pointer is mutable
+
 	MutateObject(obj)            // Compile-time error
 	obj.MutatingMethod()         // Compile-time error
 	obj.MutableField = &Object{} // Compile-time error
@@ -284,9 +286,9 @@ func ReadObj(
 ```
 **Expected compilation errors:**
 ```
-.example.go:21:19 cannot use obj (type * const Object) as type *Object in argument to MutateObject
-.example.go:22:9 cannot call mutating method `Object.MutatingMethod` on immutable variable `obj` of type `* const Object`
-.example.go:23:23 cannot assign to contextually immutable field `Object.MutableField` of type `*Object`
+.example.go:23:19 cannot use obj (type * const Object) as type *Object in argument to MutateObject
+.example.go:24:9 cannot call mutating method `Object.MutatingMethod` on immutable variable `obj` of type `* const Object`
+.example.go:25:23 cannot assign to contextually immutable field `Object.MutableField` of type `*Object`
 ```
 
 ----

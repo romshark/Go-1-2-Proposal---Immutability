@@ -1,13 +1,33 @@
-![Immutability - A Go 2 Language Feature Proposal](https://github.com/romshark/Go-2-Proposal---Immutability/blob/master/document_header.png "Immutability - A Go 2 Language Feature Proposal")
+![Immutability - A Go Language Feature Proposal](https://github.com/romshark/Go-2-Proposal---Immutability/blob/master/document_header.png "Immutability - A Go Language Feature Proposal")
 
-# Go 2 - Immutability
-This document describes a Go 2 (*Go > 1.11*) language feature proposal to
-immutability.
+# Go - Immutability
+This document describes a language feature proposal to immutability for the [Go
+programming language](https://golang.org). The proposed feature targets the
+current [Go 1.x (> 1.11) language specification](https://golang.org/ref/spec)
+and doesn't violate [the Go 1 compatibility
+promise](https://golang.org/doc/go1compat). It also describes an even better
+approach to immutability for a hypothetical, backwards-incompatible [Go 2
+language specification](https://blog.golang.org/toward-go2).
 
-Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
+<table>
+	<tr>
+		<td><b>Author</b></td>
+		<td>
+			<a href="https://github.com/romshark">Roman Sharkov</a> (<a href="mailto:roman.sharkov@qbeon.com">roman.sharkov@qbeon.com</a>)
+		</td>
+	</tr>
+	<tr>
+		<td><b>Status</b></td>
+		<td>Draft</td>
+	</tr>
+	<tr>
+		<td><b>Version</b></td>
+		<td>v0.1.0</td>
+	</tr>
+</table>
 
 **Table of Contents**
-- [Go 2 - Immutability](#go-2---immutability)
+- [Go - Immutability](#go---immutability)
 	- [1. Introduction](#1-introduction)
 		- [1.1. Current Problems](#11-current-problems)
 			- [1.1.1. Ambiguous Code and Dangerous Bugs](#111-ambiguous-code-and-dangerous-bugs)

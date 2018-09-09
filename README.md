@@ -352,8 +352,20 @@ func MutateObject(obj *Object) {
 	obj.MutableField = &Object{}
 }
 
+// ConstRef helps shortening declaration statements
+type ConstRef const * const Object
+
 func main() {
-	const obj = NewObject()
+	// The definition version:
+	// The cast is necessary because NewObject returns a mutable value
+	// while we want an immutable variable
+	obj := const * const Object (NewObject())
+
+	// The var declaration version:
+	// (this statement could be shortened using a type alias)
+	var obj_var_long const * const Object = const * const Object (NewObject())
+	var obj_var ConstRef = ConstRef(NewObject())
+
 	obj.MutableField = &Object{} // Compile-time error
 	obj.MutatingMethod()         // Compile-time error
 	MutateObject(obj)            // Compile-time error

@@ -46,6 +46,7 @@ Author: [Roman Sharkov](https://github.com/romshark) (<roman.sharkov@qbeon.com>)
 			- [Mutable map of immutable keys to immutable objects](#mutable-map-of-immutable-keys-to-immutable-objects)
 			- [Immutable map of immutable keys to immutable objects](#immutable-map-of-immutable-keys-to-immutable-objects)
 		- [3.9. Doesn't the `const` qualifier add boilerplate and make code harder to read?](#39-doesnt-the-const-qualifier-add-boilerplate-and-make-code-harder-to-read)
+		- [3.10. Why do we need the distinction between immutable and mutable reference types?](#310-why-do-we-need-the-distinction-between-immutable-and-mutable-reference-types)
 
 ## 1. Introduction
 Immutability is a technique to prevent undesired mutations by annotating
@@ -1024,6 +1025,47 @@ func (rec * const T) OurMethod(s ConstSlice) ConstSlice {
   return rec.internal
 }
 ```
+
+### 3.10. Why do we need the distinction between immutable and mutable reference types?
+Simply put, the question is: *why do we have to write out the rather verbose
+`const * const Object` and `const [] const Object` instead of just
+`const *Object` and `const []Object` respectively?*
+
+There are certain situation where mutable references to immutable types are
+necessary such as when we want to describe a dynamic, interlinked graph data
+structure where the nodes of the graph are immutable.
+
+```go
+// GraphNode represents a node with outbound and inbound connections.
+// Connections can be changed, but the underlying nodes will remain immutable
+type GraphNode struct {
+	inbound * const GraphNode
+	outbound * const GraphNode
+}
+```
+
+Contrary, there are other situations where we'd require immutable references to
+mutable objects, such as in the case of rather complex functions taking
+references to mutable graph nodes:
+
+```go
+// MutateGraphNode takes an immutable pointer to a mutable graph node,
+// The pointer needs to be immutable so that it behaves like an
+// immutable variable so we can't accidentally change it in the scope
+// of the function potentially messing up the whole calculation!
+func MutateGraphNode(ref const * GraphNode) {
+	/*...*/
+	ref = &GraphNode{} // Compile-time error
+	/*...*/
+	ref.outbound = &GraphNode{} // fine
+	ref.Mutation()              // fine
+}
+```
+
+Without this distinction, the above code wouldn't be possible and we'd have to
+compromise compile-time safety by **removing immutability** to solve similar
+problems. Reference types like pointers, slices and maps are just regular types
+and should be treated as such consistently without any special regulations.
 
 ----
 Copyright © 2018 [Roman Sharkov](https://github.com/romshark)

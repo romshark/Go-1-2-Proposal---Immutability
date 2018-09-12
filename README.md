@@ -885,8 +885,8 @@ The `const` qualifier adds only a little cognitive overhead:
   will change anything inside the receiver.
 - When declaring an **interface method** we have to know, whether this method
   should not change the state of the object implementing this interface.
-- When declaring a **reference type** such as a pointer, a slice or a map we
-  have to know whether we want to:
+- When declaring a **reference type** such as a pointer, a slice a map or a
+  channel we have to know whether we want to:
 	- make the object changeable, but not the its reference
 	- make the actual reference changeable, but not the object it references
 	- make both the reference and the object changeable

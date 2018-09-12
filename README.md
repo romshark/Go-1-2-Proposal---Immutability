@@ -71,6 +71,10 @@ language specification](https://blog.golang.org/toward-go2).
 		- [4.1. proposal: spec: add read-only slices and maps as function arguments #20443](#41-proposal-spec-add-read-only-slices-and-maps-as-function-arguments-20443)
 			- [Disadvantages](#disadvantages)
 			- [Similarities](#similarities)
+		- [4.2. proposal: Go 2: read-only types #22876](#42-proposal-go-2-read-only-types-22876)
+			- [Disadvantages](#disadvantages)
+			- [Differences](#differences)
+			- [Similarities](#similarities)
 
 ## 1. Introduction
 Immutability is a technique to prevent undesired mutations by annotating
@@ -1107,9 +1111,9 @@ exceptional treatment of slices and maps passed as function arguments.
   shared state just like slices and maps.
 - **Very limited:** it doesn't propose immutability for variables, methods,
   fields, return values and arguments of any other type than slices and maps.
-- **Leads to performance degradation:** it proposes shallow-copying of slices and maps
-  passed to function argument instead of actual compile-time immutability errors
-  (even though it mentions it).
+- **Leads to performance degradation:** it proposes shallow-copying of slices
+  and maps passed to function argument instead of actual compile-time
+  immutability errors (even though it mentions it).
 - **Unclear:** it doesn't clearly define how to handle slice aliasing.
 - **Unclear:** it also doesn't clearly define how to handle nested container
   types.
@@ -1121,6 +1125,32 @@ exceptional treatment of slices and maps passed as function arguments.
 - Similar `const` keyword overloading with the same argumentation with slight
   differences (used as argument field qualifier rather than as argument type
   qualifier).
+
+----
+
+### 4.2. [proposal: Go 2: read-only types #22876](https://github.com/golang/go/issues/22876)
+The proposed `ro` qualifier described in the document above is similar to
+current proposal but still has some significant differences.
+
+#### Disadvantages
+- **Backwards-incompatible:** the proposed feature requires
+  backwards-incompatible language changes.
+- **Less flexible:** _`ro` Transitivity_ describes the inheritance of
+  immutability by types referenced from immutable references which limits the
+  ability of the developer to describe *immutable references to mutable objects*
+  (like a mutable slice of immutable slices `[] const [] int` etc.) and similar.
+- **Less advanced:** it doesn't propose immutable struct fields.
+
+#### Differences
+- "Immutability" is called "read-only type permissions" while constants are
+  called "immutables".
+- Proposes implicit *mutable to immutable* type conversion by default.
+
+#### Similarities
+- The proposed `ro` qualifier is part of the type definition just as the `const`
+  qualifier.
+- Proposes immutable return values, arguments, interfaces and receivers.
+- Describes very similar benefits.
 
 ----
 Copyright © 2018 [Roman Sharkov](https://github.com/romshark)

@@ -67,6 +67,10 @@ language specification](https://blog.golang.org/toward-go2).
 			- [Immutable map of immutable keys to immutable objects](#immutable-map-of-immutable-keys-to-immutable-objects)
 		- [3.9. Doesn't the `const` qualifier add boilerplate and make code harder to read?](#39-doesnt-the-const-qualifier-add-boilerplate-and-make-code-harder-to-read)
 		- [3.10. Why do we need the distinction between immutable and mutable reference types?](#310-why-do-we-need-the-distinction-between-immutable-and-mutable-reference-types)
+	- [4. Other Proposals](#4-other-proposals)
+		- [4.1. proposal: spec: add read-only slices and maps as function arguments #20443](#41-proposal-spec-add-read-only-slices-and-maps-as-function-arguments-20443)
+			- [Disadvantages](#disadvantages)
+			- [Similarities](#similarities)
 
 ## 1. Introduction
 Immutability is a technique to prevent undesired mutations by annotating
@@ -1086,6 +1090,35 @@ Without this distinction, the above code wouldn't be possible and we'd have to
 compromise compile-time safety by **removing immutability** to solve similar
 problems. Reference types like pointers, slices and maps are just regular types
 and should be treated as such consistently without any special regulations.
+
+## 4. Other Proposals
+### 4.1. [proposal: spec: add read-only slices and maps as function arguments #20443](https://github.com/golang/go/issues/20443)
+The proposed kind of immutability described in the document above doesn't solve
+the [pointer aliasing](https://en.wikipedia.org/wiki/Pointer_aliasing) problem
+at all proposing only exceptional treatment of slices and maps passed as
+function arguments.
+
+#### Disadvantages
+- **Inconsistent:** it introduces exceptional rules for map- and slice-type
+  arguments leading to eventual specification inconsistency.
+- **Doesn't solve the root problem:** it doesn't take mutable pointer types into
+  account which are prone to [pointer
+  aliasing](https://en.wikipedia.org/wiki/Pointer_aliasing) leading to mutable
+  shared state just like slices and maps.
+- **Very limited:** it doesn't propose immutability for variables, methods,
+  fields, return values and arguments of any other type than slices and maps.
+- **Leads to performance degradation:** it proposes shallow-copying of slices and maps
+  passed to function argument instead of actual compile-time immutability errors
+  (even though it mentions it).
+- **Unclear:** it doesn't clearly define how to handle slice aliasing.
+- **Unclear:** it also doesn't clearly define how to handle nested container
+  types.
+- **Very limited:** it won't allow different combinations of mutable and
+  immutable types (such as passing mutable references inside immutable slices
+  and similar).
+
+#### Similarities
+- Same `const` keyword overloading with the same argumentation.
 
 ----
 Copyright © 2018 [Roman Sharkov](https://github.com/romshark)

@@ -5,8 +5,8 @@ This document describes a language feature proposal to immutability for the [Go
 programming language](https://golang.org). The proposed feature targets the
 current [Go 1.x (> 1.11) language specification](https://golang.org/ref/spec)
 and doesn't violate [the Go 1 compatibility
-promise](https://golang.org/doc/go1compat). It also describes an even better
-approach to immutability for a hypothetical, backwards-incompatible [Go 2
+promise](https://golang.org/doc/go1compat). It also describes [an even better
+approach to immutability](#3-immutability-by-default-go--2x) for a hypothetical, backwards-incompatible [Go 2
 language specification](https://blog.golang.org/toward-go2).
 
 <table>
@@ -48,15 +48,19 @@ language specification](https://blog.golang.org/toward-go2).
 		- [2.8. Address Operators](#28-address-operators)
 			- [Taking the address of a variable](#taking-the-address-of-a-variable)
 			- [Dereferencing a pointer](#dereferencing-a-pointer)
-	- [3. FAQ](#3-faq)
-		- [3.1. Are the items within immutable slices/maps also immutable?](#31-are-the-items-within-immutable-slicesmaps-also-immutable)
-		- [3.2. Go is all about simplicity, so why make the language more complicated?](#32-go-is-all-about-simplicity-so-why-make-the-language-more-complicated)
-		- [3.3. Aren't other features such as generics and better error handling not more important right now?](#33-arent-other-features-such-as-generics-and-better-error-handling-not-more-important-right-now)
-		- [3.4. Why overload the `const` keyword instead of introducing a new keyword like `immutable` etc.?](#34-why-overload-the-const-keyword-instead-of-introducing-a-new-keyword-like-immutable-etc)
-		- [3.5. How are constants different from immutables?](#35-how-are-constants-different-from-immutables)
-		- [3.6. Why do we need immutable receivers if we already have copy-receivers?](#36-why-do-we-need-immutable-receivers-if-we-already-have-copy-receivers)
-		- [3.7. Why do we need immutable interfaces?](#37-why-do-we-need-immutable-interfaces)
-		- [3.8. What's the difference between *immutable references* and *references to immutables*?](#38-whats-the-difference-between-immutable-references-and-references-to-immutables)
+	- [3. Immutability by Default (Go >= 2.x)](#3-immutability-by-default-go--2x)
+		- [3.1. Benefits](#31-benefits)
+			- [3.1.1. Safety by Default](#311-safety-by-default)
+			- [3.1.2. No Casting](#312-no-casting)
+	- [4. FAQ](#4-faq)
+		- [4.1. Are the items within immutable slices/maps also immutable?](#41-are-the-items-within-immutable-slicesmaps-also-immutable)
+		- [4.2. Go is all about simplicity, so why make the language more complicated?](#42-go-is-all-about-simplicity-so-why-make-the-language-more-complicated)
+		- [4.3. Aren't other features such as generics and better error handling not more important right now?](#43-arent-other-features-such-as-generics-and-better-error-handling-not-more-important-right-now)
+		- [4.4. Why overload the `const` keyword instead of introducing a new keyword like `immutable` etc.?](#44-why-overload-the-const-keyword-instead-of-introducing-a-new-keyword-like-immutable-etc)
+		- [4.5. How are constants different from immutables?](#45-how-are-constants-different-from-immutables)
+		- [4.6. Why do we need immutable receivers if we already have copy-receivers?](#46-why-do-we-need-immutable-receivers-if-we-already-have-copy-receivers)
+		- [4.7. Why do we need immutable interfaces?](#47-why-do-we-need-immutable-interfaces)
+		- [4.8. What's the difference between *immutable references* and *references to immutables*?](#48-whats-the-difference-between-immutable-references-and-references-to-immutables)
 			- [Immutable pointer to mutable object](#immutable-pointer-to-mutable-object)
 			- [Mutable pointer to immutable object](#mutable-pointer-to-immutable-object)
 			- [Immutable pointer to immutable object](#immutable-pointer-to-immutable-object)
@@ -68,13 +72,13 @@ language specification](https://blog.golang.org/toward-go2).
 			- [Mutable map of mutable keys to immutable objects](#mutable-map-of-mutable-keys-to-immutable-objects)
 			- [Mutable map of immutable keys to immutable objects](#mutable-map-of-immutable-keys-to-immutable-objects)
 			- [Immutable map of immutable keys to immutable objects](#immutable-map-of-immutable-keys-to-immutable-objects)
-		- [3.9. Doesn't the `const` qualifier add boilerplate and make code harder to read?](#39-doesnt-the-const-qualifier-add-boilerplate-and-make-code-harder-to-read)
-		- [3.10. Why do we need the distinction between immutable and mutable reference types?](#310-why-do-we-need-the-distinction-between-immutable-and-mutable-reference-types)
-	- [4. Other Proposals](#4-other-proposals)
-		- [4.1. proposal: spec: add read-only slices and maps as function arguments #20443](#41-proposal-spec-add-read-only-slices-and-maps-as-function-arguments-20443)
+		- [4.9. Doesn't the `const` qualifier add boilerplate and make code harder to read?](#49-doesnt-the-const-qualifier-add-boilerplate-and-make-code-harder-to-read)
+		- [4.10. Why do we need the distinction between immutable and mutable reference types?](#410-why-do-we-need-the-distinction-between-immutable-and-mutable-reference-types)
+	- [5. Other Proposals](#5-other-proposals)
+		- [5.1. proposal: spec: add read-only slices and maps as function arguments #20443](#51-proposal-spec-add-read-only-slices-and-maps-as-function-arguments-20443)
 			- [Disadvantages](#disadvantages)
 			- [Similarities](#similarities)
-		- [4.2. proposal: Go 2: read-only types #22876](#42-proposal-go-2-read-only-types-22876)
+		- [5.2. proposal: Go 2: read-only types #22876](#52-proposal-go-2-read-only-types-22876)
 			- [Disadvantages](#disadvantages)
 			- [Differences](#differences)
 			- [Similarities](#similarities)
@@ -544,9 +548,80 @@ t := const * T = &T{}
 *t // T
 ```
 
-## 3. FAQ
+## 3. Immutability by Default (Go >= 2.x)
+If we were to think of an immutability proposal for the backward-incompatible Go
+2 language specification, then making all types immutable by default and
+introducing a special keyword `mut` for mutability annotation would be a better
+options.
 
-### 3.1. Are the items within immutable slices/maps also immutable?
+```go
+// Object implements the ObjectInterface interface
+type Object struct {
+	Immutable_str string
+	Mutable_str   mut string
+
+	Immutable_immutRef_to_immutObj * Object
+	Mutable_mutRef_to_immutObj     mut * Object
+	Mutable_mutRef_to_mutObj       mut * mut Object
+
+	Immutable_immutSlice_of_immutObj [] Object
+	Mutable_mutSlice_of_immutObj     mut [] Object
+	Mutable_mutSlice_of_mutObj       mut [] mut Object
+
+	Immutable_immutMap_of_immutObj map[Object] Object          // immutable key
+	Mutable_mutMap_of_immutObj     mut [Object] Object         // immutable key
+	Mutable_mutMap_of_mutObj       mut [mut Object] mut Object // mutable key
+}
+
+// MutableMethod implements ObjectInterface.MutableMethod
+func (mutableReceiver * mut Object) MutableMethod(
+	mutableArgument mut * Object, // mutable reference to immutable object
+) (
+	mutableReturnValue mut * mut Object, // mutable reference to mutable object
+) {
+	var mutRef_to_mutObj mut * mut Object
+	var mutRef_to_immutObj mut * Object
+	var immutRef_to_immutObj * Object
+
+	return nil
+}
+
+// ImmutableMethod implements ObjectInterface.ImmutableMethod
+func (immutableReceiver *Object) ImmutableMethod(
+	immutableArgument * Object, // immutable reference to immutable object
+) (
+	immutableReturnValue * Object // immutable reference to immutable object
+) {
+	var mutRef_to_mutObj mut * mut Object
+	var mutRef_to_immutObj mut * Object
+	var immutRef_to_immutObj * Object
+
+	return nil
+}
+
+type ObjectInterface interface {
+	mut MutableMethod(arg mut * Object) (returnValue mut * mut Object)
+	ImmutableMethod(arg *Object) (returnValue *Object)
+}
+```
+
+### 3.1. Benefits
+
+#### 3.1.1. Safety by Default
+Immutability stands for compile-time safety, which would then be default
+behavior. The developer will have to explicitly annotate mutable types using the
+`mut` modifier preventing types from accidentally being declared mutable by
+forgetting to prepend the `const` qualifier.
+
+#### 3.1.2. No Casting
+When all types are mutable by default then they need to be casted to *immutable*
+types before they can be used as such in case of explicit casting (which is not
+the case for implicit `non-const` to `const` casting though). But when all types
+are immutable by default then no casting is ever necessary.
+
+## 4. FAQ
+
+### 4.1. Are the items within immutable slices/maps also immutable?
 **No**, they're not! An immutable slice/map of mutable objects is declared this way:
 ```go
 type ImmutableSlice const []*Object
@@ -566,7 +641,7 @@ type ImmutableMatrix const [] const [] int
 
 ---
 
-### 3.2. Go is all about simplicity, so why make the language more complicated?
+### 4.2. Go is all about simplicity, so why make the language more complicated?
 The `const` qualifier adds only a little cognitive overhead:
 - When declaring a **function argument** we have to know whether we want to be
   able to change its state and make it immutable if we don't.
@@ -645,7 +720,7 @@ func (s * const Server) ConnectedClients() const []Client {
 
 ---
 
-### 3.3. Aren't other features such as generics and better error handling not more important right now?
+### 4.3. Aren't other features such as generics and better error handling not more important right now?
 **No**, absolutely not! Unlike with topics such as *"generics"* and *"how to
 handle errors more elegantly"* there's really not much to argue about in case of
 immutability. It should be clear that it makes code both safer and easier to
@@ -655,7 +730,7 @@ considered of higher priority compared to other previously mentioned topics.
 
 ----
 
-### 3.4. Why overload the `const` keyword instead of introducing a new keyword like `immutable` etc.?
+### 4.4. Why overload the `const` keyword instead of introducing a new keyword like `immutable` etc.?
 **Backwards-compatibility**. Using the const keyword would allow us to introduce
 immutability to Go 1.x without having to make breaking changes to the language.
 The introduction of a new keyword could potentially break existing Go 1.x code,
@@ -667,7 +742,7 @@ example, C++ uses the `const` keyword to do just that).
 
 ----
 
-### 3.5. How are constants different from immutables?
+### 4.5. How are constants different from immutables?
 **Short:** Constants are static in memory, while immutables are just
 write-protected references to mutable memory.
 
@@ -709,7 +784,7 @@ created!
 
 ----
 
-### 3.6. Why do we need immutable receivers if we already have copy-receivers?
+### 4.6. Why do we need immutable receivers if we already have copy-receivers?
 There's two reasons: safety and performance.
 
 **Copy-receivers don't prevent mutations!** They simply can't because of
@@ -847,7 +922,7 @@ aliasing](https://en.wikipedia.org/wiki/Pointer_aliasing), thus immutable
 receivers (be it an immutable copy or an immutable pointer receiver) are
 necessary to ensure compiler-enforced safety.
 
-### 3.7. Why do we need immutable interfaces?
+### 4.7. Why do we need immutable interfaces?
 Immutable interfaces guarantee that you can't call mutating methods of the
 underlying implementation through it. Passing an immutable interface to a
 function as an argument while trying to call a non-const method on it, for
@@ -879,7 +954,7 @@ func main() {
 
 ----
 
-### 3.8. What's the difference between *immutable references* and *references to immutables*?
+### 4.8. What's the difference between *immutable references* and *references to immutables*?
 Reference-types such as pointers, slices and maps can be immutable while still
 referencing mutable objects. This is useful in many cases such as:
 - When we need a slice to be mutable so we can add new items to it, remove items
@@ -1026,7 +1101,7 @@ for key, value := range m {
 }
 ```
 
-### 3.9. Doesn't the `const` qualifier add boilerplate and make code harder to read?
+### 4.9. Doesn't the `const` qualifier add boilerplate and make code harder to read?
 **Short answer**: No, it doesn't and it can be quite the opposite.
 
 **Long answer**: Let's pretend we need to write a method with the following
@@ -1094,7 +1169,7 @@ func (rec * const T) OurMethod(s ConstSlice) ConstSlice {
 }
 ```
 
-### 3.10. Why do we need the distinction between immutable and mutable reference types?
+### 4.10. Why do we need the distinction between immutable and mutable reference types?
 Simply put, the question is: *why do we have to write out the rather verbose
 `const * const Object` and `const [] const Object` instead of just
 `const *Object` and `const []Object` respectively?*
@@ -1135,8 +1210,8 @@ compromise compile-time safety by **removing immutability** to solve similar
 problems. Reference types like pointers, slices and maps are just regular types
 and should be treated as such consistently without any special regulations.
 
-## 4. Other Proposals
-### 4.1. [proposal: spec: add read-only slices and maps as function arguments #20443](https://github.com/golang/go/issues/20443)
+## 5. Other Proposals
+### 5.1. [proposal: spec: add read-only slices and maps as function arguments #20443](https://github.com/golang/go/issues/20443)
 The proposed kind of immutability described in the document above doesn't solve
 the mutable shared state problem cause by [pointer
 aliasing](https://en.wikipedia.org/wiki/Pointer_aliasing) at all proposing only
@@ -1168,7 +1243,7 @@ exceptional treatment of slices and maps passed as function arguments.
 
 ----
 
-### 4.2. [proposal: Go 2: read-only types #22876](https://github.com/golang/go/issues/22876)
+### 5.2. [proposal: Go 2: read-only types #22876](https://github.com/golang/go/issues/22876)
 The proposed `ro` qualifier described in the document above is similar to
 current proposal but still has some significant differences.
 

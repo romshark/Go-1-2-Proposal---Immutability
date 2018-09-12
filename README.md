@@ -1118,7 +1118,9 @@ exceptional treatment of slices and maps passed as function arguments.
   and similar).
 
 #### Similarities
-- Same `const` keyword overloading with the same argumentation.
+- Similar `const` keyword overloading with the same argumentation with slight
+  differences (used as argument field qualifier rather than as argument type
+  qualifier).
 
 ----
 Copyright © 2018 [Roman Sharkov](https://github.com/romshark)

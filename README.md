@@ -1094,9 +1094,9 @@ and should be treated as such consistently without any special regulations.
 ## 4. Other Proposals
 ### 4.1. [proposal: spec: add read-only slices and maps as function arguments #20443](https://github.com/golang/go/issues/20443)
 The proposed kind of immutability described in the document above doesn't solve
-the [pointer aliasing](https://en.wikipedia.org/wiki/Pointer_aliasing) problem
-at all proposing only exceptional treatment of slices and maps passed as
-function arguments.
+the mutable shared state problem cause by [pointer
+aliasing](https://en.wikipedia.org/wiki/Pointer_aliasing) at all proposing only
+exceptional treatment of slices and maps passed as function arguments.
 
 #### Disadvantages
 - **Inconsistent:** it introduces exceptional rules for map- and slice-type

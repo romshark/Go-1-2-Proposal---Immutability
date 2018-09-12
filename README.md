@@ -46,8 +46,8 @@ language specification](https://blog.golang.org/toward-go2).
 		- [2.6. Immutable Interface Methods](#26-immutable-interface-methods)
 		- [2.7. Slice Aliasing](#27-slice-aliasing)
 		- [2.8. Address Operators](#28-address-operators)
-			- [Taking the address of a variable](#taking-the-address-of-a-variable)
-			- [Dereferencing a pointer](#dereferencing-a-pointer)
+			- [2.8.1. Taking the address of a variable](#281-taking-the-address-of-a-variable)
+			- [2.8.2. Dereferencing a pointer](#282-dereferencing-a-pointer)
 	- [3. Immutability by Default (Go >= 2.x)](#3-immutability-by-default-go--2x)
 		- [3.1. Benefits](#31-benefits)
 			- [3.1.1. Safety by Default](#311-safety-by-default)
@@ -61,27 +61,27 @@ language specification](https://blog.golang.org/toward-go2).
 		- [4.6. Why do we need immutable receivers if we already have copy-receivers?](#46-why-do-we-need-immutable-receivers-if-we-already-have-copy-receivers)
 		- [4.7. Why do we need immutable interfaces?](#47-why-do-we-need-immutable-interfaces)
 		- [4.8. What's the difference between *immutable references* and *references to immutables*?](#48-whats-the-difference-between-immutable-references-and-references-to-immutables)
-			- [Immutable pointer to mutable object](#immutable-pointer-to-mutable-object)
-			- [Mutable pointer to immutable object](#mutable-pointer-to-immutable-object)
-			- [Immutable pointer to immutable object](#immutable-pointer-to-immutable-object)
-			- [Immutable slice of immutable objects](#immutable-slice-of-immutable-objects)
-			- [Mutable slice of immutable objects](#mutable-slice-of-immutable-objects)
-			- [Immutable slice of mutable objects](#immutable-slice-of-mutable-objects)
-			- [Mutable slice of mutable objects](#mutable-slice-of-mutable-objects)
-			- [Mutable map of immutable keys to mutable objects](#mutable-map-of-immutable-keys-to-mutable-objects)
-			- [Mutable map of mutable keys to immutable objects](#mutable-map-of-mutable-keys-to-immutable-objects)
-			- [Mutable map of immutable keys to immutable objects](#mutable-map-of-immutable-keys-to-immutable-objects)
-			- [Immutable map of immutable keys to immutable objects](#immutable-map-of-immutable-keys-to-immutable-objects)
+			- [4.8.1. Immutable pointer to mutable object](#481-immutable-pointer-to-mutable-object)
+			- [4.8.2. Mutable pointer to immutable object](#482-mutable-pointer-to-immutable-object)
+			- [4.8.3. Immutable pointer to immutable object](#483-immutable-pointer-to-immutable-object)
+			- [4.8.4. Immutable slice of immutable objects](#484-immutable-slice-of-immutable-objects)
+			- [4.8.5. Mutable slice of immutable objects](#485-mutable-slice-of-immutable-objects)
+			- [4.8.6. Immutable slice of mutable objects](#486-immutable-slice-of-mutable-objects)
+			- [4.8.7. Mutable slice of mutable objects](#487-mutable-slice-of-mutable-objects)
+			- [4.8.8. Mutable map of immutable keys to mutable objects](#488-mutable-map-of-immutable-keys-to-mutable-objects)
+			- [4.8.9. Mutable map of mutable keys to immutable objects](#489-mutable-map-of-mutable-keys-to-immutable-objects)
+			- [4.8.10. Mutable map of immutable keys to immutable objects](#4810-mutable-map-of-immutable-keys-to-immutable-objects)
+			- [4.8.11. Immutable map of immutable keys to immutable objects](#4811-immutable-map-of-immutable-keys-to-immutable-objects)
 		- [4.9. Doesn't the `const` qualifier add boilerplate and make code harder to read?](#49-doesnt-the-const-qualifier-add-boilerplate-and-make-code-harder-to-read)
 		- [4.10. Why do we need the distinction between immutable and mutable reference types?](#410-why-do-we-need-the-distinction-between-immutable-and-mutable-reference-types)
 	- [5. Other Proposals](#5-other-proposals)
 		- [5.1. proposal: spec: add read-only slices and maps as function arguments #20443](#51-proposal-spec-add-read-only-slices-and-maps-as-function-arguments-20443)
-			- [Disadvantages](#disadvantages)
-			- [Similarities](#similarities)
+			- [5.1.1. Disadvantages](#511-disadvantages)
+			- [5.1.2. Similarities](#512-similarities)
 		- [5.2. proposal: Go 2: read-only types #22876](#52-proposal-go-2-read-only-types-22876)
-			- [Disadvantages](#disadvantages)
-			- [Differences](#differences)
-			- [Similarities](#similarities)
+			- [5.2.1. Disadvantages](#521-disadvantages)
+			- [5.2.2. Differences](#522-differences)
+			- [5.2.3. Similarities](#523-similarities)
 
 ## 1. Introduction
 Immutability is a technique to prevent undesired mutations by annotating
@@ -513,7 +513,7 @@ func main() {
 
 ### 2.8. Address Operators
 
-#### Taking the address of a variable
+#### 2.8.1. Taking the address of a variable
 Taking the address of an *immutable* variable results in a *mutable* pointer to
 an *immutable* object:
 
@@ -529,7 +529,7 @@ var t const T = T{}
 t_pointer := const(&t) // const * const T
 ```
 
-#### Dereferencing a pointer
+#### 2.8.2. Dereferencing a pointer
 Dereferencing an *immutable* pointer to an *immutable* object:
 ```go
 t := const * const T (&T{})
@@ -968,7 +968,7 @@ referencing mutable objects. This is useful in many cases such as:
   `var mutableMap map [const T] T`
 - When we need any other possible combination of mutable and immutable types...
 
-#### Immutable pointer to mutable object
+#### 4.8.1. Immutable pointer to mutable object
 
 ```go
 var immut2mut const *Object = &Object{}
@@ -978,7 +978,7 @@ immut2mut.Field = 42  // fine
 immut2mut.Mutation()  // fine
 ```
 
-#### Mutable pointer to immutable object
+#### 4.8.2. Mutable pointer to immutable object
 
 ```go
 var mut2immut * const Object = &Object{}
@@ -988,7 +988,7 @@ mut2immut.Field = 42  // violation!
 mut2immut.Mutation()  // violation!
 ```
 
-#### Immutable pointer to immutable object
+#### 4.8.3. Immutable pointer to immutable object
 ```go
 var immut2immut const * const Object = const(&Object{})
 
@@ -997,7 +997,7 @@ immut2immut.Field = 42  // violation!
 immut2immut.Mutation()  // violation!
 ```
 
-#### Immutable slice of immutable objects
+#### 4.8.4. Immutable slice of immutable objects
 
 ```go
 var immut2immut const [] const Object
@@ -1008,7 +1008,7 @@ obj := immut2immut[0]
 obj.Mutation() // violation!
 ```
 
-#### Mutable slice of immutable objects
+#### 4.8.5. Mutable slice of immutable objects
 
 ```go
 var mut2immut [] const Object
@@ -1019,7 +1019,7 @@ obj := mut2immut[0]
 obj.Mutation() // violation!
 ```
 
-#### Immutable slice of mutable objects
+#### 4.8.6. Immutable slice of mutable objects
 
 ```go
 var immut2mut const [] Object
@@ -1030,7 +1030,7 @@ obj := immut2mut[0]
 obj.Mutation() // fine
 ```
 
-#### Mutable slice of mutable objects
+#### 4.8.7. Mutable slice of mutable objects
 
 ```go
 var mut2mut [] Object
@@ -1041,7 +1041,7 @@ obj := mut2mut[0]
 obj.Mutation() // fine
 ```
 
-#### Mutable map of immutable keys to mutable objects
+#### 4.8.8. Mutable map of immutable keys to mutable objects
 
 ```go
 var mut_immut2mut map[const Object] Object
@@ -1056,7 +1056,7 @@ for key, value := range mut_immut2mut {
 }
 ```
 
-#### Mutable map of mutable keys to immutable objects
+#### 4.8.9. Mutable map of mutable keys to immutable objects
 
 ```go
 var mut_mut2immut map[Object] const Object
@@ -1071,7 +1071,7 @@ for key, value := range mut_mut2immut {
 }
 ```
 
-#### Mutable map of immutable keys to immutable objects
+#### 4.8.10. Mutable map of immutable keys to immutable objects
 
 ```go
 var immut_immut2immut map[const Object] const Object
@@ -1086,7 +1086,7 @@ for key, value := range immut_immut2immut {
 }
 ```
 
-#### Immutable map of immutable keys to immutable objects
+#### 4.8.11. Immutable map of immutable keys to immutable objects
 
 ```go
 var m const map[const Object] const Object
@@ -1217,7 +1217,7 @@ the mutable shared state problem cause by [pointer
 aliasing](https://en.wikipedia.org/wiki/Pointer_aliasing) at all proposing only
 exceptional treatment of slices and maps passed as function arguments.
 
-#### Disadvantages
+#### 5.1.1. Disadvantages
 - **Inconsistent:** it introduces exceptional rules for map- and slice-type
   arguments leading to eventual specification inconsistency.
 - **Doesn't solve the root problem:** it doesn't take mutable pointer types into
@@ -1236,7 +1236,7 @@ exceptional treatment of slices and maps passed as function arguments.
   immutable types (such as passing mutable references inside immutable slices
   and similar).
 
-#### Similarities
+#### 5.1.2. Similarities
 - Similar `const` keyword overloading with the same argumentation with slight
   differences (used as argument field qualifier rather than as argument type
   qualifier).
@@ -1247,7 +1247,7 @@ exceptional treatment of slices and maps passed as function arguments.
 The proposed `ro` qualifier described in the document above is similar to
 current proposal but still has some significant differences.
 
-#### Disadvantages
+#### 5.2.1. Disadvantages
 - **Backwards-incompatible:** the proposed feature requires
   backwards-incompatible language changes.
 - **Less flexible:** _`ro` Transitivity_ describes the inheritance of
@@ -1256,12 +1256,12 @@ current proposal but still has some significant differences.
   (like a mutable slice of immutable slices `[] const [] int` etc.) and similar.
 - **Less advanced:** it doesn't propose immutable struct fields.
 
-#### Differences
+#### 5.2.2. Differences
 - "Immutability" is called "read-only type permissions" while constants are
   called "immutables".
 - Proposes implicit *mutable to immutable* type conversion by default.
 
-#### Similarities
+#### 5.2.3. Similarities
 - The proposed `ro` qualifier is part of the type definition just as the `const`
   qualifier.
 - Proposes immutable return values, arguments, interfaces and receivers.

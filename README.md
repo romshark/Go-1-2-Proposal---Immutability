@@ -45,6 +45,9 @@ language specification](https://blog.golang.org/toward-go2).
 		- [2.5. Immutable Variables](#25-immutable-variables)
 		- [2.6. Immutable Interface Methods](#26-immutable-interface-methods)
 		- [2.7. Slice Aliasing](#27-slice-aliasing)
+		- [2.8. Address Operators](#28-address-operators)
+			- [Taking the address of a variable](#taking-the-address-of-a-variable)
+			- [Dereferencing a pointer](#dereferencing-a-pointer)
 	- [3. FAQ](#3-faq)
 		- [3.1. Are the items within immutable slices/maps also immutable?](#31-are-the-items-within-immutable-slicesmaps-also-immutable)
 		- [3.2. Go is all about simplicity, so why make the language more complicated?](#32-go-is-all-about-simplicity-so-why-make-the-language-more-complicated)
@@ -502,6 +505,43 @@ func main() {
 .example.go:9:23 cannot assign to immutable variable of type `const []int`
 .example.go:10:18 cannot assign to immutable variable of type `const []int`
 .example.go:13:25 cannot assign to immutable variable of type `const []int`
+```
+
+### 2.8. Address Operators
+
+#### Taking the address of a variable
+Taking the address of an *immutable* variable results in a *mutable* pointer to
+an *immutable* object:
+
+```go
+var t const T = T{}
+t_pointer := &t // * const T
+```
+
+To take an *immutable* pointer from an *immutable* variable explicit casting is
+needed:
+```go
+var t const T = T{}
+t_pointer := const(&t) // const * const T
+```
+
+#### Dereferencing a pointer
+Dereferencing an *immutable* pointer to an *immutable* object:
+```go
+t := const * const T (&T{})
+*t // const T
+```
+
+Dereferencing a mutable pointer to an *immutable* object:
+```go
+t := * const T = (&T{})
+*t // const T
+```
+
+Dereferencing an *immutable* pointer to a *mutable* object:
+```go
+t := const * T = &T{}
+*t // T
 ```
 
 ## 3. FAQ

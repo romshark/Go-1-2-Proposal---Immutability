@@ -48,6 +48,25 @@ language specification](https://blog.golang.org/toward-go2).
 		- [2.8. Address Operators](#28-address-operators)
 			- [2.8.1. Taking the address of a variable](#281-taking-the-address-of-a-variable)
 			- [2.8.2. Dereferencing a pointer](#282-dereferencing-a-pointer)
+		- [2.9. Immutable Reference Types](#29-immutable-reference-types)
+			- [2.9.1. Pointer Examples](#291-pointer-examples)
+				- [2.9.1.1. Immutable pointer to mutable object](#2911-immutable-pointer-to-mutable-object)
+				- [2.9.1.2. Mutable pointer to immutable object](#2912-mutable-pointer-to-immutable-object)
+				- [2.9.1.3. Immutable pointer to immutable object](#2913-immutable-pointer-to-immutable-object)
+			- [2.9.2. Slice Examples](#292-slice-examples)
+				- [2.9.2.1. Immutable slice of immutable objects](#2921-immutable-slice-of-immutable-objects)
+				- [2.9.2.2. Mutable slice of immutable objects](#2922-mutable-slice-of-immutable-objects)
+				- [2.9.2.3. Immutable slice of mutable objects](#2923-immutable-slice-of-mutable-objects)
+				- [2.9.2.4. Mutable slice of mutable objects](#2924-mutable-slice-of-mutable-objects)
+			- [2.9.3. Map Examples](#293-map-examples)
+				- [2.9.3.1. Mutable map of immutable keys to mutable objects](#2931-mutable-map-of-immutable-keys-to-mutable-objects)
+				- [2.9.3.2. Mutable map of mutable keys to immutable objects](#2932-mutable-map-of-mutable-keys-to-immutable-objects)
+				- [2.9.3.3. Mutable map of immutable keys to immutable objects](#2933-mutable-map-of-immutable-keys-to-immutable-objects)
+				- [2.9.3.4. Immutable map of immutable keys to immutable objects](#2934-immutable-map-of-immutable-keys-to-immutable-objects)
+			- [2.9.4. Channel Examples](#294-channel-examples)
+				- [2.9.4.1. Immutable channel of immutable objects](#2941-immutable-channel-of-immutable-objects)
+				- [2.9.4.2. Immutable channel of mutable objects](#2942-immutable-channel-of-mutable-objects)
+				- [2.9.4.3. Mutable channel of immutable objects](#2943-mutable-channel-of-immutable-objects)
 	- [3. Immutability by Default (Go >= 2.x)](#3-immutability-by-default-go--2x)
 		- [3.1. Benefits](#31-benefits)
 			- [3.1.1. Safety by Default](#311-safety-by-default)
@@ -60,20 +79,8 @@ language specification](https://blog.golang.org/toward-go2).
 		- [4.5. How are constants different from immutables?](#45-how-are-constants-different-from-immutables)
 		- [4.6. Why do we need immutable receivers if we already have copy-receivers?](#46-why-do-we-need-immutable-receivers-if-we-already-have-copy-receivers)
 		- [4.7. Why do we need immutable interfaces?](#47-why-do-we-need-immutable-interfaces)
-		- [4.8. What's the difference between *immutable references* and *references to immutables*?](#48-whats-the-difference-between-immutable-references-and-references-to-immutables)
-			- [4.8.1. Immutable pointer to mutable object](#481-immutable-pointer-to-mutable-object)
-			- [4.8.2. Mutable pointer to immutable object](#482-mutable-pointer-to-immutable-object)
-			- [4.8.3. Immutable pointer to immutable object](#483-immutable-pointer-to-immutable-object)
-			- [4.8.4. Immutable slice of immutable objects](#484-immutable-slice-of-immutable-objects)
-			- [4.8.5. Mutable slice of immutable objects](#485-mutable-slice-of-immutable-objects)
-			- [4.8.6. Immutable slice of mutable objects](#486-immutable-slice-of-mutable-objects)
-			- [4.8.7. Mutable slice of mutable objects](#487-mutable-slice-of-mutable-objects)
-			- [4.8.8. Mutable map of immutable keys to mutable objects](#488-mutable-map-of-immutable-keys-to-mutable-objects)
-			- [4.8.9. Mutable map of mutable keys to immutable objects](#489-mutable-map-of-mutable-keys-to-immutable-objects)
-			- [4.8.10. Mutable map of immutable keys to immutable objects](#4810-mutable-map-of-immutable-keys-to-immutable-objects)
-			- [4.8.11. Immutable map of immutable keys to immutable objects](#4811-immutable-map-of-immutable-keys-to-immutable-objects)
-		- [4.9. Doesn't the `const` qualifier add boilerplate and make code harder to read?](#49-doesnt-the-const-qualifier-add-boilerplate-and-make-code-harder-to-read)
-		- [4.10. Why do we need the distinction between immutable and mutable reference types?](#410-why-do-we-need-the-distinction-between-immutable-and-mutable-reference-types)
+		- [4.8. Doesn't the `const` qualifier add boilerplate and make code harder to read?](#48-doesnt-the-const-qualifier-add-boilerplate-and-make-code-harder-to-read)
+		- [4.9. Why do we need the distinction between immutable and mutable reference types?](#49-why-do-we-need-the-distinction-between-immutable-and-mutable-reference-types)
 	- [5. Other Proposals](#5-other-proposals)
 		- [5.1. proposal: spec: add read-only slices and maps as function arguments #20443](#51-proposal-spec-add-read-only-slices-and-maps-as-function-arguments-20443)
 			- [5.1.1. Disadvantages](#511-disadvantages)
@@ -548,6 +555,227 @@ t := const * T = &T{}
 *t // T
 ```
 
+### 2.9. Immutable Reference Types
+Reference types such as [slices](https://golang.org/ref/spec#Slice_types),
+[maps](https://golang.org/ref/spec#Map_types),
+[channels](https://golang.org/ref/spec#Channel_types) and
+[pointers](https://golang.org/ref/spec#Pointer_types) can also be declared
+immutable using the `const` qualifier just like any other type. But the objects
+/ items referenced by immutable reference types **don't inherit their
+immutability!** Reference types can point to both mutable and immutable types,
+this makes the type system very versatile and flexible.
+
+The examples below demonstrate a few possible combinations:
+
+#### 2.9.1. Pointer Examples
+
+##### 2.9.1.1. Immutable pointer to mutable object
+
+```go
+var immut2mut const *Object = &Object{}
+
+immut2mut = &Object{} // Compile-time error
+immut2mut.Field = 42  // fine
+immut2mut.Mutation()  // fine
+```
+
+##### 2.9.1.2. Mutable pointer to immutable object
+
+```go
+var mut2immut * const Object = &Object{}
+
+mut2immut = &Object{} // fine
+mut2immut.Field = 42  // Compile-time error
+mut2immut.Mutation()  // Compile-time error
+```
+
+##### 2.9.1.3. Immutable pointer to immutable object
+```go
+var immut2immut const * const Object = const(&Object{})
+
+immut2immut = &Object{} // Compile-time error
+immut2immut.Field = 42  // Compile-time error
+immut2immut.Mutation()  // Compile-time error
+```
+
+#### 2.9.2. Slice Examples
+
+##### 2.9.2.1. Immutable slice of immutable objects
+
+```go
+var immut2immut const [] const Object
+immut2immut = append(immut2immut, Object{}) // Compile-time error
+immut2immut[0] = Object{}                   // Compile-time error
+
+obj := immut2immut[0]
+obj.Mutation() // Compile-time error
+```
+
+##### 2.9.2.2. Mutable slice of immutable objects
+
+```go
+var mut2immut [] const Object
+mut2immut = append(mut2immut, Object{}) // fine
+mut2immut[0] = Object{}                 // fine
+
+obj := mut2immut[0]
+obj.Mutation() // Compile-time error
+```
+
+##### 2.9.2.3. Immutable slice of mutable objects
+
+```go
+var immut2mut const [] Object
+immut2mut = append(immut2mut, Object{}) // Compile-time error
+immut2mut[0] = Object{}                 // Compile-time error
+
+obj := immut2mut[0]
+obj.Mutation() // fine
+```
+
+##### 2.9.2.4. Mutable slice of mutable objects
+
+```go
+var mut2mut [] Object
+mut2mut = append(mut2mut, Object{}) // fine
+mut2mut[0] = Object{}               // fine
+
+obj := mut2mut[0]
+obj.Mutation() // fine
+```
+
+#### 2.9.3. Map Examples
+
+##### 2.9.3.1. Mutable map of immutable keys to mutable objects
+
+```go
+var mut_immut2mut map[const Object] Object
+
+newKey := const(Object{})
+mut_immut2mut[newKey] = Object{} // fine
+delete(mut_immut2mut, newKey)    // fine
+
+for key, value := range mut_immut2mut {
+	key.Mutation()   // Compile-time error
+	value.Mutation() // fine
+}
+```
+
+##### 2.9.3.2. Mutable map of mutable keys to immutable objects
+
+```go
+var mut_mut2immut map[Object] const Object
+
+newKey := Object{}
+mut_mut2immut[newKey] = const(Object{}) // fine
+delete(mut_mut2immut, newKey)           // fine
+
+for key, value := range mut_mut2immut {
+	key.Mutation()   // fine
+	value.Mutation() // Compile-time error
+}
+```
+
+##### 2.9.3.3. Mutable map of immutable keys to immutable objects
+
+```go
+var immut_immut2immut map[const Object] const Object
+
+newKey := const(Object{})
+immut_immut2immut[newKey] = const(Object{}) // fine
+delete(immut_immut2immut, newKey)           // fine
+
+for key, value := range immut_immut2immut {
+	key.Mutation()   // Compile-time error
+	value.Mutation() // Compile-time error
+}
+```
+
+##### 2.9.3.4. Immutable map of immutable keys to immutable objects
+
+```go
+var m const map[const Object] const Object
+
+newKey := const(Object{})
+m[newKey] = const(Object{}) // Compile-time error
+delete(m, newKey)           // Compile-time error
+
+for key, value := range m {
+	key.Mutation()   // Compile-time error
+	value.Mutation() // Compile-time error
+}
+```
+
+#### 2.9.4. Channel Examples
+
+##### 2.9.4.1. Immutable channel of immutable objects
+
+```go
+func main() {
+	ch := ConstReadOnlyChannel()
+	ch = AnotherChannelOfSameType() // Compile-time error
+
+	immutObj := <-ch
+	immutObj.Field = 42  // Compile-time error
+	immutObj.Mutation()  // Compile-time error
+}
+
+// ConstReadOnlyChannel returns an immutable read only channel
+// of immutable objects
+func ConstReadOnlyChannel() const <-chan const Object {
+	ch := make(chan Object)
+	go func() {
+		ch <- const(Object{})
+	}()
+	return const(ch)
+}
+```
+
+##### 2.9.4.2. Immutable channel of mutable objects
+
+```go
+func main() {
+	ch := ConstReadOnlyChannel()
+	ch = AnotherChannelOfSameType() // Compile-time error
+
+	mutObj := <-ch
+	mutObj.Field = 42  // fine
+	mutObj.Mutation()  // fine
+}
+
+// ConstReadOnlyChannel returns an immutable read only channel
+// of mutable objects
+func ConstReadOnlyChannel() const <-chan Object {
+	ch := make(chan int)
+	go func() {
+		ch <- Object{}
+	}()
+	return ch
+}
+```
+
+##### 2.9.4.3. Mutable channel of immutable objects
+
+```go
+func main() {
+	ch := MutReadOnlyChannel()
+	ch = MutReadOnlyChannel() // fine
+
+	immutObj := <-ch
+	immutObj.Field = 42  // Compile-time error
+	immutObj.Mutation()  // Compile-time error
+}
+
+// MutReadOnlyChannel returns a mutable read only channel of immutable objects
+func MutReadOnlyChannel() <-chan const Object {
+	ch := make(chan Object)
+	go func() {
+		ch <- const(Object{})
+	}()
+	return ch
+}
+```
+
 ## 3. Immutability by Default (Go >= 2.x)
 If we were to think of an immutability proposal for the backward-incompatible Go
 2 language specification, then making all types immutable by default and
@@ -622,7 +850,8 @@ are immutable by default then no casting is ever necessary.
 ## 4. FAQ
 
 ### 4.1. Are the items within immutable slices/maps also immutable?
-**No**, they're not! An immutable slice/map of mutable objects is declared this way:
+**No**, they're not! As stated in [Section 2.9.](#29-immutable-reference-types),
+an immutable slice/map of mutable objects is declared this way:
 ```go
 type ImmutableSlice const []*Object
 type ImmutableMap   const map[*Object]*Object
@@ -952,156 +1181,7 @@ func main() {
 .example:13:11: cannot call method mutating method on immutable interface iface of type `const Interface`
 ```
 
-----
-
-### 4.8. What's the difference between *immutable references* and *references to immutables*?
-Reference-types such as pointers, slices and maps can be immutable while still
-referencing mutable objects. This is useful in many cases such as:
-- When we need a slice to be mutable so we can add new items to it, remove items
-  from it and replace/swap items inside it, but the actual items should remain
-  immutable: `var mutableSlice [] const T`
-- When we need a pointer to be immutable to prevent it from pointing to anything
-  other than a certain object, which should be mutable though:
-  `var immutablePointer const * T`
-- When we need only the keys of a mutable map to be immutable so we can add /
-  remove / replace and mutate values but not mutate the keys:
-  `var mutableMap map [const T] T`
-- When we need any other possible combination of mutable and immutable types...
-
-#### 4.8.1. Immutable pointer to mutable object
-
-```go
-var immut2mut const *Object = &Object{}
-
-immut2mut = &Object{} // violation!
-immut2mut.Field = 42  // fine
-immut2mut.Mutation()  // fine
-```
-
-#### 4.8.2. Mutable pointer to immutable object
-
-```go
-var mut2immut * const Object = &Object{}
-
-mut2immut = &Object{} // fine
-mut2immut.Field = 42  // violation!
-mut2immut.Mutation()  // violation!
-```
-
-#### 4.8.3. Immutable pointer to immutable object
-```go
-var immut2immut const * const Object = const(&Object{})
-
-immut2immut = &Object{} // violation!
-immut2immut.Field = 42  // violation!
-immut2immut.Mutation()  // violation!
-```
-
-#### 4.8.4. Immutable slice of immutable objects
-
-```go
-var immut2immut const [] const Object
-immut2immut = append(immut2immut, Object{}) // violation!
-immut2immut[0] = Object{}                   // violation!
-
-obj := immut2immut[0]
-obj.Mutation() // violation!
-```
-
-#### 4.8.5. Mutable slice of immutable objects
-
-```go
-var mut2immut [] const Object
-mut2immut = append(mut2immut, Object{}) // fine
-mut2immut[0] = Object{}                 // fine
-
-obj := mut2immut[0]
-obj.Mutation() // violation!
-```
-
-#### 4.8.6. Immutable slice of mutable objects
-
-```go
-var immut2mut const [] Object
-immut2mut = append(immut2mut, Object{}) // violation!
-immut2mut[0] = Object{}                 // violation!
-
-obj := immut2mut[0]
-obj.Mutation() // fine
-```
-
-#### 4.8.7. Mutable slice of mutable objects
-
-```go
-var mut2mut [] Object
-mut2mut = append(mut2mut, Object{}) // fine
-mut2mut[0] = Object{}               // fine
-
-obj := mut2mut[0]
-obj.Mutation() // fine
-```
-
-#### 4.8.8. Mutable map of immutable keys to mutable objects
-
-```go
-var mut_immut2mut map[const Object] Object
-
-newKey := const(Object{})
-mut_immut2mut[newKey] = Object{} // fine
-delete(mut_immut2mut, newKey)    // fine
-
-for key, value := range mut_immut2mut {
-	key.Mutation()   // violation!
-	value.Mutation() // fine
-}
-```
-
-#### 4.8.9. Mutable map of mutable keys to immutable objects
-
-```go
-var mut_mut2immut map[Object] const Object
-
-newKey := Object{}
-mut_mut2immut[newKey] = const(Object{}) // fine
-delete(mut_mut2immut, newKey)           // fine
-
-for key, value := range mut_mut2immut {
-	key.Mutation()   // fine
-	value.Mutation() // violation!
-}
-```
-
-#### 4.8.10. Mutable map of immutable keys to immutable objects
-
-```go
-var immut_immut2immut map[const Object] const Object
-
-newKey := const(Object{})
-immut_immut2immut[newKey] = const(Object{}) // fine
-delete(immut_immut2immut, newKey)           // fine
-
-for key, value := range immut_immut2immut {
-	key.Mutation()   // violation!
-	value.Mutation() // violation!
-}
-```
-
-#### 4.8.11. Immutable map of immutable keys to immutable objects
-
-```go
-var m const map[const Object] const Object
-
-newKey := const(Object{})
-m[newKey] = const(Object{}) // violation!
-delete(m, newKey)           // violation!
-
-for key, value := range m {
-	key.Mutation()   // violation!
-	value.Mutation() // violation!
-}
-```
-
-### 4.9. Doesn't the `const` qualifier add boilerplate and make code harder to read?
+### 4.8. Doesn't the `const` qualifier add boilerplate and make code harder to read?
 **Short answer**: No, it doesn't and it can be quite the opposite.
 
 **Long answer**: Let's pretend we need to write a method with the following
@@ -1169,7 +1249,7 @@ func (rec * const T) OurMethod(s ConstSlice) ConstSlice {
 }
 ```
 
-### 4.10. Why do we need the distinction between immutable and mutable reference types?
+### 4.9. Why do we need the distinction between immutable and mutable reference types?
 Simply put, the question is: *why do we have to write out the rather verbose
 `const * const Object` and `const [] const Object` instead of just
 `const *Object` and `const []Object` respectively?*

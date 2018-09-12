@@ -1293,7 +1293,7 @@ and should be treated as such consistently without any special regulations.
 ## 5. Other Proposals
 ### 5.1. [proposal: spec: add read-only slices and maps as function arguments #20443](https://github.com/golang/go/issues/20443)
 The proposed kind of immutability described in the document above doesn't solve
-the mutable shared state problem cause by [pointer
+the mutable shared state problem caused by [pointer
 aliasing](https://en.wikipedia.org/wiki/Pointer_aliasing) at all proposing only
 exceptional treatment of slices and maps passed as function arguments.
 

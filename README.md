@@ -96,25 +96,31 @@ language specification](https://blog.golang.org/toward-go2).
 			- [5.2.3. Similarities](#523-similarities)
 
 ## 1. Introduction
-Immutability is a technique to prevent undesired mutations by annotating
-immutable symbols like variables, arguments, fields, return values and methods
-for both security and performance reasons. A Go 1.11 developer's current
-approach to immutability is manual copying because it doesn't currently provide
-any compiler-enforced immutability annotations. This makes Go 1.x harder to work
-with because immutability isn't rigidly guaranteed by the compiler, which can
-lead to hard to find bugs.
+Immutability is a technique to prevent undesired mutations by annotating types
+as immutable in the declarations of variables, arguments, fields, return values
+and methods for both security and performance reasons.
 
-Ideally a programming language should enforce immutability by default while the
-developers must explicitly annotate mutable symbols as such, but this concept
-would require significant, backwards-incompatible language changes breaking
-existing Go 1.x code. To prevent breaking Go 1.x compatibility this document
-describe an approach to immutability by overloading the `const` keyword ([see
-here for more
+A Go 1.11 developer's current approach to immutability is manual copying because
+Go 1.x doesn't currently provide any compiler-enforced immutable types. This
+makes Go harder to work with because mutable shared state can lead to very
+dangerous, hard to find and identify bugs, especially in a highly concurrent
+environment, while manual copying is error prone, bulky and slow.
+
+Ideally a programming language should enforce [immutability by
+default](#3-immutability-by-default-go--2x) where the developers must explicitly
+annotate mutable types as such, but this concept would require significant,
+backwards-incompatible language changes breaking existing Go 1.x code. Such an
+approach to immutability would only be possible in a new backward-incompatible
+Go 2.x language specification.
+
+To prevent breaking Go 1.x compatibility this document describe a
+backward-compatible approach to add support for immutable types by overloading
+the `const` keyword ([see here for more
 details](#34-why-overload-the-const-keyword-instead-of-introducing-a-new-keyword-like-immutable-etc))
-to act as an immutable type qualifier similar to languages like C++. Symbols
-annotated as immutables are checked for mutations during the compilation phase
-resulting in compile-time errors. There is no runtime cost to this approach but
-a slight compile-time cost is still required.
+to act as an immutable type qualifier. Immutable types are checked for all kinds
+of mutations during the compilation resulting in compile-time errors in case of
+illegal mutation attempts. There is no runtime cost to this approach, but a
+negligible compile-time cost is still required.
 
 ### 1.1. Current Problems
 

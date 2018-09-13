@@ -895,7 +895,7 @@ of immutability.
 If we were to think of an immutability proposal for the backward-incompatible Go
 2 language specification, then making all types immutable by default and
 introducing a special keyword `mut` for mutability annotation would be a better
-options.
+option.
 
 ```go
 // Object implements the ObjectInterface interface

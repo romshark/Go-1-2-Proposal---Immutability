@@ -202,18 +202,18 @@ can also make optimizations based on the immutability of certain objects known
 at compile time.
 
 ## 2. Proposed Language Changes
-The following 5 changes need to be made to the language to fully fulfill this
-proposal. The changes involve:
-- [struct field declaration statements](#21-immutable-fields)
-- [function receiver declaration statements](#22-immutable-methods)
-- [function arguments declaration statements](#23-immutable-arguments)
-- [function return values declaration statements](#24-immutable-return-values)
-- [variable declaration statements](#25-immutable-variables)
+The language must be adjusted to support the `const` qualifier
+inside type definitions to denote certain types as immutable.
 
-All proposed changes are fully backwards-compatible and don't require any
-breaking changes to be introduced to the language. Code written in previous
-versions of the Go 1.x programming language will continue to compile and work as
-expected.
+The compiler needs to perform an additional scan for mutations on immutable
+types:
+- assignments to _immutable_ types
+- calls of methods with a _mutable_ receiver type on _immutable_ types
+
+It is to be noted, that all proposed changes are fully backwards-compatible and
+don't require any breaking changes to be introduced to the Go 1.x language
+specification. Code written in previous versions of Go 1.x will continue to
+compile and work as usual.
 
 ### 2.1. Immutable Fields
 Immutable struct fields are declared using the `const` qualifier. Immutable

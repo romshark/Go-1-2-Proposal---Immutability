@@ -67,6 +67,10 @@ language specification](https://blog.golang.org/toward-go2).
 				- [2.9.4.1. Immutable channel of immutable objects](#2941-immutable-channel-of-immutable-objects)
 				- [2.9.4.2. Immutable channel of mutable objects](#2942-immutable-channel-of-mutable-objects)
 				- [2.9.4.3. Mutable channel of immutable objects](#2943-mutable-channel-of-immutable-objects)
+		- [2.10. Type Casting](#210-type-casting)
+			- [2.10.1. Simple Casting](#2101-simple-casting)
+			- [2.10.2. Type Casting](#2102-type-casting)
+			- [2.10.3. Prohibition of Casting of Immutable- to Mutable Types](#2103-prohibition-of-casting-of-immutable--to-mutable-types)
 	- [3. Immutability by Default (Go >= 2.x)](#3-immutability-by-default-go--2x)
 		- [3.1. Benefits](#31-benefits)
 			- [3.1.1. Safety by Default](#311-safety-by-default)
@@ -776,6 +780,110 @@ func MutReadOnlyChannel() <-chan const Object {
 	return ch
 }
 ```
+
+### 2.10. Type Casting
+Mutable types need to be explicitly casted to immutables types to be used as
+such because implicit casting in Go is only used in exceptional cases like type
+to interface conversions.
+
+#### 2.10.1. Simple Casting
+Most of the times simple `const` casting is enough like in the examples below:
+
+```go
+// ReturnConstString returns an immutable string value
+func ReturnConstString() const string {
+	var test string
+
+	return "test" // Compile-time error
+	return test   // Compile-time error
+
+	// Simple non-const to const casting
+	return const("test")
+	return const(test)
+}
+```
+
+```go
+// ReturnConstSlice returns an immutable slice
+func ReturnConstSlice() const [] int {
+	test := make([] int, 3)
+
+	return make([] int, 3)    // Compile-time error
+	return [] int {1, 2, 3}   // Compile-time error
+	return test               // Compile-time error
+
+	return make(const [] int, 3)
+
+	// Simple non-const to const casting
+	return const([] int {1, 2, 3})
+	return const(test)
+}
+```
+
+#### 2.10.2. Type Casting
+There also are more complex situations where simple `const` casting is
+insufficient. In those situations the mutable type needs to be type-casted
+`immutable type (symbol)` to an immutable type.
+
+```go
+// ReturnConstTMatrix returns an immutable slice of immutable slices of floats
+func ReturnConstTMatrix() const [] const [] * const T {
+	var test [] [] *T
+
+	return make([] [] *T, 3) // Compile-time error
+	return [] [] *T          // Compile-time error
+	return test              // Compile-time error
+
+	return make(const [] const [] * const T, 3)
+	return const [] const [] * const T {
+		const [] * const T {* const T ( &T{} )},
+		const [] * const T {* const T ( &T{} )},
+		const [] * const T {* const T ( &T{} )},
+	}
+
+	// const-type-cast
+	return const [] const [] *T (test)
+}
+```
+
+```go
+// ReturnMap returns a mutable map of
+// immutable T to pointer of immutable T
+func ReturnMap() map[const T] * const T {
+	var test map[T] *T
+
+	return make(map[T] *T, 3) // Compile-time error
+	return map[T] *T {}       // Compile-time error
+	return test               // Compile-time error
+
+	return make(map[const T] * const T, 3)
+	return map[const T] * const T {nil, nil, nil}
+
+	// const-type-cast
+	return map[const T] * const T (test)
+}
+```
+
+```go
+func main() {
+	// Declare mutable matrix of pointers to mutable structs
+	var mutable [][]*T
+
+	// Cast to immutable matrix of pointers to mutable structs
+	immutable_variant1 := const [] const [] *T (mutable)
+
+	// Cast to immutable slice of mutable slices of pointers to mutable structs
+	immutable_variant2 := const [] [] *T (mutable)
+
+	// Cast to mutable matrix of pointers to immutable structs
+	immutable_variant3 := [][] * const T (mutable)
+}
+```
+
+#### 2.10.3. Prohibition of Casting of Immutable- to Mutable Types
+Casting of immutable- to mutable types is forbidden because it would make it
+possible to silently void the immutability guarantee breaking the entire concept
+of immutability.
 
 ## 3. Immutability by Default (Go >= 2.x)
 If we were to think of an immutability proposal for the backward-incompatible Go

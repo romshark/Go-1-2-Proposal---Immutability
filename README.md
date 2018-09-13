@@ -81,6 +81,7 @@ language specification](https://blog.golang.org/toward-go2).
 		- [4.7. Why do we need immutable interfaces?](#47-why-do-we-need-immutable-interfaces)
 		- [4.8. Doesn't the `const` qualifier add boilerplate and make code harder to read?](#48-doesnt-the-const-qualifier-add-boilerplate-and-make-code-harder-to-read)
 		- [4.9. Why do we need the distinction between immutable and mutable reference types?](#49-why-do-we-need-the-distinction-between-immutable-and-mutable-reference-types)
+		- [4.10. Why not implicitly convert mutable to immutable types?](#410-why-not-implicitly-convert-mutable-to-immutable-types)
 	- [5. Other Proposals](#5-other-proposals)
 		- [5.1. proposal: spec: add read-only slices and maps as function arguments #20443](#51-proposal-spec-add-read-only-slices-and-maps-as-function-arguments-20443)
 			- [5.1.1. Disadvantages](#511-disadvantages)
@@ -1289,6 +1290,12 @@ Without this distinction, the above code wouldn't be possible and we'd have to
 compromise compile-time safety by **removing immutability** to solve similar
 problems. Reference types like pointers, slices and maps are just regular types
 and should be treated as such consistently without any special regulations.
+
+### 4.10. Why not implicitly convert mutable to immutable types?
+In Go types are never implicitly converted and always need to be explicitly
+casted. As the immutability operator `const` is just a type qualifier - making
+mutable types implicitly convert to immutable types would lead to inconsistency
+in the language specification.
 
 ## 5. Other Proposals
 ### 5.1. [proposal: spec: add read-only slices and maps as function arguments #20443](https://github.com/golang/go/issues/20443)

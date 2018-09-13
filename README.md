@@ -124,53 +124,55 @@ negligible compile-time cost is still required.
 
 ### 1.1. Current Problems
 
-The current approach to immutability has a number of disadvantages listed below
-and sorted by importance in descending order.
+The current approach to immutability (namely copying) has a number of
+disadvantages listed below and sorted by importance in descending order.
 
 #### 1.1.1. Ambiguous Code and Dangerous Bugs
-The absence of immutability annotations can lead to ambiguous code that results
+The absence of immutable types can lead to ambiguous code that results
 in dangerous, hard to find bugs.
 
 Imagine the following situation: you add a new 3-rd party package `xyz` to your
 project as an external dependency. This package provides an exported function
-`xyz.ReadSlice(slice []string)` the documentation of which promises that the
-provided slice of strings will not be mutated, so you write your code with this
-assumption in mind.
+`xyz.ReadSlice(slice []string)`. The documentation of this function promises
+that the provided slice of strings will not be mutated, so you write your code
+with this assumption in mind.
 
 At any time though the vendor of the external package might change its behavior
 either intentionally (updating the documentation) or unintentionally (the slice
 might get aliased and thus unintentionally mutate the original slice somewhere
-in the depths of the package or it's external dependencies). Chances are high
-that either you miss the changed documentation or the behavior of the code
-changes without acknowledging you at all in the worst case! This can obviously
-lead to serious and hard to find bugs.
+in the depths of the package or it's external dependencies).
+
+Chances are high that either you miss the changed documentation or the behavior
+of the code changes without acknowledging you at all in the worst case! This can
+obviously lead to serious and hard to find bugs.
 
 #### 1.1.2. Vague Documentation
-We have to manually document what can be mutated and what the code user **must
-not** mutate. Not only does this unnecessarily complicate the documentation, it
-also makes it error prone and redundant.
+We have to manually document what variables, fields, arguments, receivers and
+return values **must not** be mutated to avoid the mentioned problems. Not only
+does this unnecessarily complicate the documentation, it also makes it error
+prone and redundant. The documentation can easily get out of sync with the
+actual code.
 
 #### 1.1.3. The "Slow but Safe vs Dangerous but Fast" Dilemma
 As previously mentioned, copies are the only way to achieve immutability in Go
 1.x, but copies degrade runtime performance. This dilemma encourage us to write
 unsafe mutable APIs when targeting optimal runtime performance. We have to
 choose between performance and safety even though having both would be possible
-with compiler-enforced immutability at the cost of a slightly decreased
+with compiler-enforced immutable types at the cost of a slightly decreased
 compilation time.
 
 ### 1.2. Benefits
-
-The addition of immutability support would provide the benefits listed below
-and sorted by importance in descending order.
+Support for immutable types would provide the benefits listed below and sorted
+by importance in descending order.
 
 #### 1.2.1. Safe Code
-With immutability annotations the situation described in the [previous
+With immutable types the situation described in the [previous
 section](#111-ambiguous-code-and-dangerous-bugs) wouldn't even be possible,
 because the author of the function of the external package would need to
-explicitly denote the argument as immutable to make the compiler enforce the
-guarantee, while the user of the function would make decisions based on the
-actual function declaration instead of relying on the potentially inconsistent
-documentation.
+explicitly denote the type of the argument as immutable to make the compiler
+enforce the guarantee, while the user of the function would make decisions based
+on the actual function declaration in the code instead of relying on the
+potentially inconsistent documentation.
 
 This way - when ever you see a mutable reference type argument you'll know you
 have to assume that the state of the referenced object will potentially be
@@ -178,29 +180,29 @@ mutated. Contrary you can safely assume that the referenced object won't be
 mutated if it's declared immutable.
 
 If the vendor of the external function decides to change the mutability of an
-argument he/she will have to change the function declaration introducing
-breaking API changes causing you to pay attention to whether or not everything's
-right. The vendor won't be able to just silently mutate your objects referenced
-by immutable references! The compiler will prevent this either before the vendor
-releases the update (assuming that the code is compiled before publication by a
-CI system) or during your local build (in the worst case) preventing insidious
-bugs from being introduces.
+argument he/she will have to change the argument types introducing breaking API
+changes causing compiler errors and making you to pay attention to whether or
+not everything's right. The vendor won't be able to just silently mutate your
+objects referenced by immutable references! The compiler will prevent this
+either before the vendor releases the update (assuming that the code is compiled
+before publication by a CI system) or during your local build (in the worst
+case) preventing insidious bugs from being introduces.
 
 #### 1.2.2. Self-Explaining Code
-With immutability annotations there's no need to explicitly describe mutability
+With immutable types there's no need to explicitly describe mutability
 recommendations in the documentation. When immutable types are declared as such
 then the code becomes self-explaining:
-- If you see an immutable argument - you can rely on it not being changed
-  neither inside the function itself, nor inside any other functions this
-  function calls etc.
-- If you see an immutable method (or a "function with an immutable receiver" if
-  you will) - you can rely on it not changing the object.
-- If you return an immutable return value - you can rely on it not being
-  mutated by the function caller.
-- If you see an immutable field - you can rely on it not being changed as soon
-  as the object is initialized, even inside its origin package.
-- If you see an immutable variable - you can rely on it not being changed in the
-  context it's in as well as the contexts it's passed over to.
+- If you see an argument of an immutable type - you can rely on it not being
+  changed neither inside the function itself, nor inside any other functions
+  this function calls etc.
+- If you see an immutable method (or a "function with a receiver of an immutable
+  type" if you will) - you can rely on it not changing the object.
+- If you return a return value of an immutable type - you can rely on it not
+  being mutated by the function caller.
+- If you see a field of an immutable type - you can rely on it not being changed
+  as soon as the object is initialized, even inside its origin package.
+- If you see a variable of an immutable type - you can rely on it not being
+  changed in the context it's in as well as the contexts it's passed over to.
 
 #### 1.2.3. Increased Runtime Performance
 Immutability provides a way to safely avoid unnecessary copying. The compiler

@@ -116,7 +116,7 @@ Go 2.x language specification.
 To prevent breaking Go 1.x compatibility this document describe a
 backward-compatible approach to add support for immutable types by overloading
 the `const` keyword ([see here for more
-details](#34-why-overload-the-const-keyword-instead-of-introducing-a-new-keyword-like-immutable-etc))
+details](#44-why-overload-the-const-keyword-instead-of-introducing-a-new-keyword-like-immutable-etc))
 to act as an immutable type qualifier. Immutable types are checked for all kinds
 of mutations during the compilation resulting in compile-time errors in case of
 illegal mutation attempts. There is no runtime cost to this approach, but a

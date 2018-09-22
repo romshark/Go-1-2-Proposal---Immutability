@@ -155,11 +155,13 @@ actual code.
 
 #### 1.1.3. The "Slow but Safe vs Dangerous but Fast" Dilemma
 As previously mentioned, copies are the only way to achieve immutability in Go
-1.x, but copies degrade runtime performance. This dilemma encourage us to write
-unsafe mutable APIs when targeting optimal runtime performance. We have to
-choose between performance and safety even though having both would be possible
-with compiler-enforced immutable types at the cost of a slightly decreased
-compilation time.
+1.x, but copies inevitably degrade runtime performance. This dilemma encourage
+us to either write unsafe mutable APIs when targeting optimal runtime
+performance or safe but slow and copy-code bloated ones.
+
+We have to choose between performance and safety even though having both would
+be possible with compiler-enforced immutable types at the cost of a slightly
+decreased compilation time.
 
 ### 1.2. Benefits
 Support for immutable types would provide the benefits listed below and sorted

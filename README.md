@@ -33,6 +33,7 @@ language specification](https://blog.golang.org/toward-go2).
 			- [1.1.1. Ambiguous Code and Dangerous Bugs](#111-ambiguous-code-and-dangerous-bugs)
 			- [1.1.2. Vague Documentation](#112-vague-documentation)
 			- [1.1.3. The "Slow but Safe vs Dangerous but Fast" Dilemma](#113-the-%22slow-but-safe-vs-dangerous-but-fast%22-dilemma)
+			- [1.1.4. Inconsistent Concept of Constants](#114-inconsistent-concept-of-constants)
 		- [1.2. Benefits](#12-benefits)
 			- [1.2.1. Safe Code](#121-safe-code)
 			- [1.2.2. Self-Explaining Code](#122-self-explaining-code)
@@ -162,6 +163,30 @@ performance or safe but slow and copy-code bloated ones.
 We have to choose between performance and safety even though having both would
 be possible with compiler-enforced immutable types at the cost of a slightly
 decreased compilation time.
+
+#### 1.1.4. Inconsistent Concept of Constants
+Currently, Go 1.x won't allow non-scalar constants such as constant slices:
+```
+const each2 = []byte{'e', 'a', 'c', 'h'} // Compile-time error
+```
+
+[Robert Griesemer](https://github.com/griesemer) stated in his comment to
+[proposal #6386](https://github.com/golang/go/issues/6386) that this is by
+language design, quote:
+> This is neither a defect of the language nor the design. The language was
+_deliberately_ designed to only permit constant of basic types.
+
+But many developers still claim it to be a major design flaw because exclusive
+immutability for scalar types only leads to inconsistency in the language
+design.
+
+With immutable type support the problem described in the linked proposal can be
+solved consistently without affecting the constants specification:
+```
+var each2 const []byte = const([]byte{'e', 'a', 'c', 'h'})
+```
+Even though technically `each2` is not a *constant* but rather an *immutable
+package-scope variable* - it solves the mutability problem.
 
 ### 1.2. Benefits
 Support for immutable types would provide the benefits listed below and sorted

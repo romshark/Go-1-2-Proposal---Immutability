@@ -319,7 +319,7 @@ func (o * const Object) ImmutableMethod() const * const Object {
 }
 
 func main() {
-    const obj := Object{}
+    obj := const(Object{})
     obj.ImmutableMethod()
     obj.MutatingMethod() // Compile-time error
 }

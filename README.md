@@ -313,22 +313,24 @@ func (o *Object) MutatingMethod() const * const Object {
 // It's illegal to mutate any fields of the receiver.
 // It's illegal to call mutating methods of the receiver
 func (o * const Object) ImmutableMethod() const * const Object {
-    o.MutatingMethod()         // Compile-time error
-    o.mutableField = &Object{} // Compile-time error
-    return o.mutableField
+    o.MutatingMethod()                      // Compile-time error
+    o.mutableField = &Object{}              // Compile-time error
+    o.mutableField.mutableField = &Object{} // Compile-time error
+    return const * const Object(o.mutableField)
 }
 
 func main() {
-    obj := const(Object{})
+    obj := * const Object (&Object{})
     obj.ImmutableMethod()
     obj.MutatingMethod() // Compile-time error
 }
 ```
 **Expected compilation errors:**
 ```
-.example.go:15:7 cannot call mutating method `Object.MutatingMethod` on immutable receiver `o` of type `const * const Object`
-.example.go:16:21 cannot assign to contextually immutable field `Object.mutableField` of type `*Object`
-.example.go:23:9 cannot call mutating method `Object.MutatingMethod` on contextually immutable variable `obj` of type `const * const Object`
+.example.go:15:7 cannot call mutating method (Object.MutatingMethod) on immutable receiver `o` (* const Object)
+.example.go:16:21 cannot assign to contextually immutable field Object.mutableField
+.example.go:17:34 cannot assign to contextually immutable field Object.mutableField
+.example.go:24:9 cannot call mutating method (Object.MutatingMethod) on immutable variable `obj` of type `* const Object`
 ```
 
 ----
@@ -370,8 +372,8 @@ func ReadObj(
 **Expected compilation errors:**
 ```
 .example.go:23:19 cannot use obj (type * const Object) as type *Object in argument to MutateObject
-.example.go:24:9 cannot call mutating method `Object.MutatingMethod` on immutable variable `obj` of type `* const Object`
-.example.go:25:23 cannot assign to contextually immutable field `Object.MutableField` of type `*Object`
+.example.go:24:9 cannot call mutating method (Object.MutatingMethod) on immutable variable `obj` of type `* const Object`
+.example.go:25:23 cannot assign to contextually immutable field (Object.MutableField) of type `*Object`
 ```
 
 ----
@@ -392,9 +394,11 @@ func (p *Object) MutatingMethod() {
 
 // ReturnImmutable returns an immutable value
 func ReturnImmutable() const * const Object {
-	return &Object{MutableField: &Object{
-		MutableField: &Object{},
-	}}
+	return const * const Object(&Object{
+		MutableField: &Object{
+			MutableField: &Object{},
+		},
+	})
 }
 
 func main() {
@@ -406,8 +410,8 @@ func main() {
 ```
 **Expected compilation errors:**
 ```
-.example.go:20:37 cannot assign to field `Object.MutableField` of contextually immutable variable `immutableVariable` of type `const * const Object`
-.example.go:21:23 cannot call function `Object.MutatingMethod` with non-const receiver on contextually immutable variable `immutableVariable` of type `const * const Object`
+.example.go:22:37 cannot assign to contextually immutable field (Object.MutableField) of immutable variable `immutableVariable` of type `const * const Object`
+.example.go:23:23 cannot call mutating function (Object.MutatingMethod) on contextually immutable variable `immutableVariable` of type `const * const Object`
 ```
 
 ----
@@ -448,7 +452,7 @@ func main() {
 
 	// The var declaration version:
 	// (this statement could be shortened using a type alias)
-	var obj_var_long const * const Object = const * const Object (NewObject())
+	var obj_var_long const * const Object = const * const Object(NewObject())
 	var obj_var ConstRef = ConstRef(NewObject())
 
 	obj.MutableField = &Object{} // Compile-time error
@@ -458,8 +462,8 @@ func main() {
 ```
 **Expected compilation errors:**
 ```
-.example.go:23:23 cannot assign to contextually immutable field `Object.MutableField` of type `*Object`
-.example.go:24:9 cannot call mutating method `Object.MutatingMethod` on immutable variable `obj` of type `const * const Object`
+.example.go:23:23 cannot assign to contextually immutable field (Object.MutableField) of type `*Object`
+.example.go:24:9 cannot call mutating method (Object.MutatingMethod) on immutable variable `obj` of type `const * const Object`
 .example.go:25:19 cannot use obj (type const * const Object) as type *Object in argument to MutateObject
 ```
 
@@ -522,7 +526,7 @@ func (ci *InvalidImplementation) Write(
 }
 
 func main() {
-	var iface Interface = &InvalidImplementation
+	var iface Interface = &InvalidImplementation // Compile-time error
 	iface.Write(0, const([]byte("example")))
 }
 ```
@@ -565,14 +569,14 @@ Taking the address of an *immutable* variable results in a *mutable* pointer to
 an *immutable* object:
 
 ```go
-var t const T = T{}
+var t const T = const(T{})
 t_pointer := &t // * const T
 ```
 
 To take an *immutable* pointer from an *immutable* variable explicit casting is
 needed:
 ```go
-var t const T = T{}
+var t const T = const(T{})
 t_pointer := const(&t) // const * const T
 ```
 
@@ -585,13 +589,13 @@ t := const * const T (&T{})
 
 Dereferencing a mutable pointer to an *immutable* object:
 ```go
-t := * const T = (&T{})
+t := * const T (&T{})
 *t // const T
 ```
 
 Dereferencing an *immutable* pointer to a *mutable* object:
 ```go
-t := const * T = &T{}
+t := const * T (&T{})
 *t // T
 ```
 
@@ -612,7 +616,7 @@ The examples below demonstrate a few possible combinations:
 ##### 2.9.1.1. Immutable pointer to a mutable object
 
 ```go
-var immut2mut const *Object = &Object{}
+var immut2mut const *Object = const(&Object{})
 
 immut2mut = &Object{} // Compile-time error
 immut2mut.Field = 42  // fine
@@ -622,7 +626,7 @@ immut2mut.Mutation()  // fine
 ##### 2.9.1.2. Mutable pointer to an immutable object
 
 ```go
-var mut2immut * const Object = &Object{}
+var mut2immut * const Object = * const Object(&Object{})
 
 mut2immut = &Object{} // fine
 mut2immut.Field = 42  // Compile-time error
@@ -631,7 +635,7 @@ mut2immut.Mutation()  // Compile-time error
 
 ##### 2.9.1.3. Immutable pointer to an immutable object
 ```go
-var immut2immut const * const Object = const(&Object{})
+var immut2immut const * const Object = const * const Object(&Object{})
 
 immut2immut = &Object{} // Compile-time error
 immut2immut.Field = 42  // Compile-time error
@@ -763,11 +767,11 @@ func main() {
 // ConstReadOnlyChannel returns an immutable read only channel
 // of immutable objects
 func ConstReadOnlyChannel() const <-chan const Object {
-	ch := make(chan Object)
+	ch := make(const chan const Object)
 	go func() {
 		ch <- const(Object{})
 	}()
-	return const(ch)
+	return ch
 }
 ```
 
@@ -786,7 +790,7 @@ func main() {
 // ConstReadOnlyChannel returns an immutable read only channel
 // of mutable objects
 func ConstReadOnlyChannel() const <-chan Object {
-	ch := make(chan int)
+	ch := make(const chan Object)
 	go func() {
 		ch <- Object{}
 	}()
@@ -808,7 +812,7 @@ func main() {
 
 // MutReadOnlyChannel returns a mutable read only channel of immutable objects
 func MutReadOnlyChannel() <-chan const Object {
-	ch := make(chan Object)
+	ch := make(chan const Object)
 	go func() {
 		ch <- const(Object{})
 	}()
@@ -1087,7 +1091,7 @@ prone (and slow) than it could be with immutability:
 ```go
 // ConnectedClients returns the list of all currently connected clients.
 func (s * const Server) ConnectedClients() const []Client {
-	return s.clients
+	return const(s.clients)
 }
 ```
 
@@ -1377,8 +1381,8 @@ with the code protected by the `const` qualifier:
 func (rec * const T) OurMethod(
     s const [] * const Object,
 ) const [] * const Object {
-  thirdparty.Dependency(s)   // safe
-  return const(rec.internal) // safe
+  thirdparty.Dependency(s)                     // `s` is safe
+  return const [] * const Object(rec.internal) // `rec.internal` is safe
 }
 ```
 

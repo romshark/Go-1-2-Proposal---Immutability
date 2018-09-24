@@ -1381,8 +1381,8 @@ with the code protected by the `const` qualifier:
 func (rec * const T) OurMethod(
     s const [] * const Object,
 ) const [] * const Object {
-  thirdparty.Dependency(s)                     // `s` is safe
-  return const [] * const Object(rec.internal) // `rec.internal` is safe
+  thirdparty.Dependency(s)                     // s is safe
+  return const [] * const Object(rec.internal) // rec.internal is safe
 }
 ```
 

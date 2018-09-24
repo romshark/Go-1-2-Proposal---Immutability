@@ -859,6 +859,10 @@ func ReturnConstSlice() const [] int {
 }
 ```
 
+Simple typecasting `const(o)` inverts the type of the given object `o` to its
+immutable counterpart for `o` to be treated as immutable. Applying simple
+typecasting to already immutable types has no effect.
+
 #### 2.10.2. Type Casting
 There also are more complex situations where simple `const` casting is
 insufficient. In those situations, the mutable type needs to be type-casted

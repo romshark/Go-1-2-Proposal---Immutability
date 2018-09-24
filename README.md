@@ -72,6 +72,8 @@ language specification](https://blog.golang.org/toward-go2).
 			- [2.10.1. Simple Casting](#2101-simple-casting)
 			- [2.10.2. Literal Type Casting](#2102-literal-type-casting)
 			- [2.10.3. Prohibition of Casting Immutable- to Mutable Types](#2103-prohibition-of-casting-immutable--to-mutable-types)
+		- [2.11. Implicit Casting](#211-implicit-casting)
+			- [2.11.1. Implicit Casting of Pointer Receivers](#2111-implicit-casting-of-pointer-receivers)
 	- [3. Immutability by Default (Go >= 2.x)](#3-immutability-by-default-go--2x)
 		- [3.1. Benefits](#31-benefits)
 			- [3.1.1. Safety by Default](#311-safety-by-default)
@@ -927,6 +929,54 @@ func main() {
 Casting immutable types to mutable types is forbidden because it would make it
 possible to silently void the immutability guarantee breaking the entire concept
 of immutability.
+
+### 2.11. Implicit Casting
+
+#### 2.11.1. Implicit Casting of Pointer Receivers
+Pointer receivers may be implicitly casted because they're semantically similar.
+
+Methods:
+```go
+type T struct {/*...*/}
+func (r1 *T) M1() {/*...*/}
+func (r2 const * T) M2() {/*...*/}
+func (r3 * const T) M3() {/*...*/}
+func (r4 const * const T) M4() {/*...*/}
+```
+
+Variables:
+```go
+// mutable pointer to mutable T
+t1 := &T{}
+
+// immutable pointer to mutable T
+t2 := const * T(&T{})
+
+// mutable pointer to immutable T
+t3 := * const T(&T{})
+
+// immutable pointer to immutable T
+t4 := const * const T(&T{})
+```
+
+| Combination | Compile-time Result | Reason |
+|-|-|-|
+| `t1.M1()` | ✓ legal | types match. |
+| `t2.M1()` | **⇌ implicit cast** |  `const * T` (`t2`) is implicitly casted to `* T` (`r1`) because in both cases `T` is mutable. |
+| `t3.M1()` | ❌ illegal | `T` referenced by `t3` is immutable, but `M1` is a mutating method. |
+| `t4.M1()` | ❌ illegal | `T` referenced by `t4` is immutable, but `M1` is a mutating method. |
+| `t1.M2()` | **⇌ implicit cast** | `* T` (`t1`) is implicitly casted to `const * T` (`r2`) because in both cases `T` is mutable. |
+| `t2.M2()` | ✓ legal | types match. |
+| `t3.M2()` | ❌ illegal | `T` referenced by `t3` is immutable, but `M2` is a mutating method. |
+| `t4.M2()` | ❌ illegal | `T` referenced by `t4` is immutable, but `M2` is a mutating method. |
+| `t1.M3()` | **⇌ implicit cast**  | `* T` (`t1`) is implicitly casted to `* const T` (`r3`) because `T` is mutable and `M3` is a non-mutating method. |
+| `t2.M3()` | ❌ illegal | `T` referenced by `t2` is mutable, but `M3` is a mutating method. |
+| `t3.M3()` | ✓ legal | types match. |
+| `t4.M3()` | **⇌ implicit cast** | `const * const T` (`t4`) is implicitly casted to `* const T` (`r3`) because in both cases `T` is immutable. |
+| `t1.M4()` | **⇌ implicit cast** | `* T` (`t1`) is implicitly casted to `const * const T` (`r4`) because `T` is mutable and `M3` is a non-mutating method. |
+| `t2.M4()` | **⇌ implicit cast** | `const * T` (`t2`) is implicitly casted to `const * const T` (`r4`) because `T` is mutable and `M4` is a non-mutating method. |
+| `t3.M4()` | **⇌ implicit cast** | `* const T` (`t3`) is implicitly casted to `const * const T` (`r4`) because in both cases `T` is immutable. |
+| `t4.M4()` | ✓ legal | types match. |
 
 ## 3. Immutability by Default (Go >= 2.x)
 If we were to think of an immutability proposal for the backward-incompatible Go

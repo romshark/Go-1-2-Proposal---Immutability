@@ -961,22 +961,22 @@ t4 := const * const T(&T{})
 
 | Combination | Compile-time Result | Reason |
 |-|-|-|
-| `t1.M1()` | ✓ legal | types match. |
-| `t2.M1()` | **⇌ implicit cast** |  `const * T` (`t2`) is implicitly casted to `* T` (`r1`) because in both cases `T` is mutable. |
-| `t3.M1()` | ❌ illegal | `T` referenced by `t3` is immutable, but `M1` is a mutating method. |
-| `t4.M1()` | ❌ illegal | `T` referenced by `t4` is immutable, but `M1` is a mutating method. |
-| `t1.M2()` | **⇌ implicit cast** | `* T` (`t1`) is implicitly casted to `const * T` (`r2`) because in both cases `T` is mutable. |
-| `t2.M2()` | ✓ legal | types match. |
-| `t3.M2()` | ❌ illegal | `T` referenced by `t3` is immutable, but `M2` is a mutating method. |
-| `t4.M2()` | ❌ illegal | `T` referenced by `t4` is immutable, but `M2` is a mutating method. |
-| `t1.M3()` | **⇌ implicit cast**  | `* T` (`t1`) is implicitly casted to `* const T` (`r3`) because `T` is mutable and `M3` is a non-mutating method. |
-| `t2.M3()` | ❌ illegal | `T` referenced by `t2` is mutable, but `M3` is a mutating method. |
-| `t3.M3()` | ✓ legal | types match. |
-| `t4.M3()` | **⇌ implicit cast** | `const * const T` (`t4`) is implicitly casted to `* const T` (`r3`) because in both cases `T` is immutable. |
-| `t1.M4()` | **⇌ implicit cast** | `* T` (`t1`) is implicitly casted to `const * const T` (`r4`) because `T` is mutable and `M3` is a non-mutating method. |
-| `t2.M4()` | **⇌ implicit cast** | `const * T` (`t2`) is implicitly casted to `const * const T` (`r4`) because `T` is mutable and `M4` is a non-mutating method. |
-| `t3.M4()` | **⇌ implicit cast** | `* const T` (`t3`) is implicitly casted to `const * const T` (`r4`) because in both cases `T` is immutable. |
-| `t4.M4()` | ✓ legal | types match. |
+| `t1.M1()` | legal | types match. |
+| `t2.M1()` | **implicit cast** |  `const * T` (`t2`) is implicitly casted to `* T` (`r1`) because in both cases `T` is mutable. |
+| `t3.M1()` | illegal | `T` referenced by `t3` is immutable, but `M1` is a mutating method. |
+| `t4.M1()` | illegal | `T` referenced by `t4` is immutable, but `M1` is a mutating method. |
+| `t1.M2()` | **implicit cast** | `* T` (`t1`) is implicitly casted to `const * T` (`r2`) because in both cases `T` is mutable. |
+| `t2.M2()` | legal | types match. |
+| `t3.M2()` | illegal | `T` referenced by `t3` is immutable, but `M2` is a mutating method. |
+| `t4.M2()` | illegal | `T` referenced by `t4` is immutable, but `M2` is a mutating method. |
+| `t1.M3()` | **implicit cast**  | `* T` (`t1`) is implicitly casted to `* const T` (`r3`) because `T` is mutable and `M3` is a non-mutating method. |
+| `t2.M3()` | illegal | `T` referenced by `t2` is mutable, but `M3` is a mutating method. |
+| `t3.M3()` | legal | types match. |
+| `t4.M3()` | **implicit cast** | `const * const T` (`t4`) is implicitly casted to `* const T` (`r3`) because in both cases `T` is immutable. |
+| `t1.M4()` | **implicit cast** | `* T` (`t1`) is implicitly casted to `const * const T` (`r4`) because `T` is mutable and `M3` is a non-mutating method. |
+| `t2.M4()` | **implicit cast** | `const * T` (`t2`) is implicitly casted to `const * const T` (`r4`) because `T` is mutable and `M4` is a non-mutating method. |
+| `t3.M4()` | **implicit cast** | `* const T` (`t3`) is implicitly casted to `const * const T` (`r4`) because in both cases `T` is immutable. |
+| `t4.M4()` | legal | types match. |
 
 ## 3. Immutability by Default (Go >= 2.x)
 If we were to think of an immutability proposal for the backward-incompatible Go

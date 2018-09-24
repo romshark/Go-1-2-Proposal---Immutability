@@ -32,7 +32,7 @@ language specification](https://blog.golang.org/toward-go2).
 		- [1.1. Current Problems](#11-current-problems)
 			- [1.1.1. Ambiguous Code and Dangerous Bugs](#111-ambiguous-code-and-dangerous-bugs)
 			- [1.1.2. Vague Documentation](#112-vague-documentation)
-			- [1.1.3. The "Slow but Safe vs Dangerous but Fast" Dilemma](#113-the-%22slow-but-safe-vs-dangerous-but-fast%22-dilemma)
+			- [1.1.3. The - Slow but Safe vs Dangerous but Fast - Dilemma](#113-the---slow-but-safe-vs-dangerous-but-fast---dilemma)
 			- [1.1.4. Inconsistent Concept of Constants](#114-inconsistent-concept-of-constants)
 		- [1.2. Benefits](#12-benefits)
 			- [1.2.1. Safe Code](#121-safe-code)
@@ -154,7 +154,7 @@ does this unnecessarily complicate the documentation, but it also makes it
 error-prone and redundant. The documentation can easily get out of sync with
 the actual code.
 
-#### 1.1.3. The "Slow but Safe vs Dangerous but Fast" Dilemma
+#### 1.1.3. The - Slow but Safe vs Dangerous but Fast - Dilemma
 As previously mentioned, copies are the only way to achieve immutability in Go
 1.x, but copies inevitably degrade runtime performance. This dilemma encourages
 us to either write unsafe mutable APIs when targeting optimal runtime

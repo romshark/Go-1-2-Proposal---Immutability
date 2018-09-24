@@ -70,7 +70,7 @@ language specification](https://blog.golang.org/toward-go2).
 				- [2.9.4.3. Mutable channels of immutable objects](#2943-mutable-channels-of-immutable-objects)
 		- [2.10. Type Casting](#210-type-casting)
 			- [2.10.1. Simple Casting](#2101-simple-casting)
-			- [2.10.2. Type Casting](#2102-type-casting)
+			- [2.10.2. Literal Type Casting](#2102-literal-type-casting)
 			- [2.10.3. Prohibition of Casting Immutable- to Mutable Types](#2103-prohibition-of-casting-immutable--to-mutable-types)
 	- [3. Immutability by Default (Go >= 2.x)](#3-immutability-by-default-go--2x)
 		- [3.1. Benefits](#31-benefits)
@@ -863,7 +863,7 @@ Simple typecasting `const(o)` inverts the type of the given object `o` to its
 immutable counterpart for `o` to be treated as immutable. Applying simple
 typecasting to already immutable types has no effect.
 
-#### 2.10.2. Type Casting
+#### 2.10.2. Literal Type Casting
 There also are more complex situations where simple `const` casting is
 insufficient. In those situations, the mutable type needs to be type-casted
 `immutable type (symbol)` to an immutable type.

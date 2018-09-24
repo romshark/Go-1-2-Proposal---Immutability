@@ -6,7 +6,7 @@ programming language](https://golang.org). The proposed feature targets the
 current [Go 1.x (> 1.11) language specification](https://golang.org/ref/spec)
 and doesn't violate [the Go 1 compatibility
 promise](https://golang.org/doc/go1compat). It also describes [an even better
-approach to immutability](#3-immutability-by-default-go--2x) for a hypothetical, backwards-incompatible [Go 2
+approach to immutability](#3-immutability-by-default-go--2x) for a hypothetical, backward-incompatible [Go 2
 language specification](https://blog.golang.org/toward-go2).
 
 <table>
@@ -51,9 +51,9 @@ language specification](https://blog.golang.org/toward-go2).
 			- [2.8.2. Dereferencing a pointer](#282-dereferencing-a-pointer)
 		- [2.9. Immutable Reference Types](#29-immutable-reference-types)
 			- [2.9.1. Pointer Examples](#291-pointer-examples)
-				- [2.9.1.1. Immutable pointer to mutable object](#2911-immutable-pointer-to-mutable-object)
-				- [2.9.1.2. Mutable pointer to immutable object](#2912-mutable-pointer-to-immutable-object)
-				- [2.9.1.3. Immutable pointer to immutable object](#2913-immutable-pointer-to-immutable-object)
+				- [2.9.1.1. Immutable pointer to a mutable object](#2911-immutable-pointer-to-a-mutable-object)
+				- [2.9.1.2. Mutable pointer to an immutable object](#2912-mutable-pointer-to-an-immutable-object)
+				- [2.9.1.3. Immutable pointer to an immutable object](#2913-immutable-pointer-to-an-immutable-object)
 			- [2.9.2. Slice Examples](#292-slice-examples)
 				- [2.9.2.1. Immutable slice of immutable objects](#2921-immutable-slice-of-immutable-objects)
 				- [2.9.2.2. Mutable slice of immutable objects](#2922-mutable-slice-of-immutable-objects)
@@ -65,13 +65,13 @@ language specification](https://blog.golang.org/toward-go2).
 				- [2.9.3.3. Mutable map of immutable keys to immutable objects](#2933-mutable-map-of-immutable-keys-to-immutable-objects)
 				- [2.9.3.4. Immutable map of immutable keys to immutable objects](#2934-immutable-map-of-immutable-keys-to-immutable-objects)
 			- [2.9.4. Channel Examples](#294-channel-examples)
-				- [2.9.4.1. Immutable channel of immutable objects](#2941-immutable-channel-of-immutable-objects)
-				- [2.9.4.2. Immutable channel of mutable objects](#2942-immutable-channel-of-mutable-objects)
-				- [2.9.4.3. Mutable channel of immutable objects](#2943-mutable-channel-of-immutable-objects)
+				- [2.9.4.1. Immutable channels of immutable objects](#2941-immutable-channels-of-immutable-objects)
+				- [2.9.4.2. Immutable channels of mutable objects](#2942-immutable-channels-of-mutable-objects)
+				- [2.9.4.3. Mutable channels of immutable objects](#2943-mutable-channels-of-immutable-objects)
 		- [2.10. Type Casting](#210-type-casting)
 			- [2.10.1. Simple Casting](#2101-simple-casting)
 			- [2.10.2. Type Casting](#2102-type-casting)
-			- [2.10.3. Prohibition of Casting of Immutable- to Mutable Types](#2103-prohibition-of-casting-of-immutable--to-mutable-types)
+			- [2.10.3. Prohibition of Casting Immutable- to Mutable Types](#2103-prohibition-of-casting-immutable--to-mutable-types)
 	- [3. Immutability by Default (Go >= 2.x)](#3-immutability-by-default-go--2x)
 		- [3.1. Benefits](#31-benefits)
 			- [3.1.1. Safety by Default](#311-safety-by-default)
@@ -102,23 +102,23 @@ very common source of nasty, hard to find and hard to even identify bugs,
 especially in concurrent environments. It can be achieved through **immutable
 types**. The compiler scans all objects of immutable types for modification
 attempts such as assignments and calls to mutating methods and fails the
-compilation if any illegal mutation attempts were identified returning errors.
+compilation returning errors if any illegal mutation attempts were identified.
 
 A Go 1.x developer's current approach to immutability is manual copying because
 Go 1.x doesn't currently provide any compiler-enforced immutable types. This
-makes Go harder to work with, because mutable shared state can't be easily dealt
+makes Go harder to work with because mutable shared state can't be easily dealt
 with.
 
 Ideally, a safe programming language should enforce [immutability by
 default](#3-immutability-by-default-go--2x) where all types are immutable unless
 they're explicitly annotated as mutable. This concept would require significant,
-backwards-incompatible language changes breaking existing Go 1.x code, thus such
+backward-incompatible language changes breaking existing Go 1.x code, thus such
 an approach to immutability would only be possible in a new
 backward-incompatible Go 2.x language specification.
 
-To prevent breaking Go 1.x compatibility this document describe a
-backward-compatible approach to add support for immutable types by overloading
-the `const` keyword ([see here for more
+To prevent breaking Go 1.x compatibility this document describes a
+backward-compatible approach to adding support for immutable types by
+overloading the `const` keyword ([see here for more
 details](#44-why-overload-the-const-keyword-instead-of-introducing-a-new-keyword-like-immutable-etc))
 to act as an immutable type qualifier. There is no runtime cost to this
 approach, but a negligible compile-time cost is still required.
@@ -138,10 +138,10 @@ project as an external dependency. This package provides an exported function
 that the provided slice of strings will not be mutated, so you write your code
 with this assumption in mind.
 
-At any time though the vendor of the external package might change its behavior
+At any time the vendor of the external package might change its behavior
 either intentionally (updating the documentation) or unintentionally (the slice
 might get aliased and thus unintentionally mutate the original slice somewhere
-in the depths of the package or it's external dependencies).
+in the depths of the package or its external dependencies).
 
 Chances are high that either you miss the changed documentation or the behavior
 of the code changes without acknowledging you at all in the worst case! This can
@@ -150,13 +150,13 @@ obviously lead to serious and hard to find bugs.
 #### 1.1.2. Vague Documentation
 We have to manually document what variables, fields, arguments, receivers and
 return values **must not** be mutated to avoid the mentioned problems. Not only
-does this unnecessarily complicate the documentation, it also makes it error
-prone and redundant. The documentation can easily get out of sync with the
-actual code.
+does this unnecessarily complicate the documentation, but it also makes it
+error-prone and redundant. The documentation can easily get out of sync with
+the actual code.
 
 #### 1.1.3. The "Slow but Safe vs Dangerous but Fast" Dilemma
 As previously mentioned, copies are the only way to achieve immutability in Go
-1.x, but copies inevitably degrade runtime performance. This dilemma encourage
+1.x, but copies inevitably degrade runtime performance. This dilemma encourages
 us to either write unsafe mutable APIs when targeting optimal runtime
 performance or safe but slow and copy-code bloated ones.
 
@@ -201,26 +201,26 @@ enforce the guarantee, while the user of the function would make decisions based
 on the actual function declaration in the code instead of relying on the
 potentially inconsistent documentation.
 
-This way - when ever you see a mutable reference type argument you'll know you
+This way - whenever you see a mutable reference type argument you'll know you
 have to assume that the state of the referenced object will potentially be
 mutated. Contrary you can safely assume that the referenced object won't be
 mutated if it's declared immutable.
 
 If the vendor of the external function decides to change the mutability of an
 argument he/she will have to change the argument types introducing breaking API
-changes causing compiler errors and making you to pay attention to whether or
+changes causing compiler errors and making you pay attention to whether or
 not everything's right. The vendor won't be able to just silently mutate your
 objects referenced by immutable references! The compiler will prevent this
 either before the vendor releases the update (assuming that the code is compiled
 before publication by a CI system) or during your local build (in the worst
-case) preventing insidious bugs from being introduces.
+case) preventing insidious bugs from being introduced.
 
 #### 1.2.2. Self-Explaining Code
-With immutable types there's no need to explicitly describe mutability
+With immutable types, there's no need to explicitly describe mutability
 recommendations in the documentation. When immutable types are declared as such
 then the code becomes self-explaining:
 - If you see an argument of an immutable type - you can rely on it not being
-  changed neither inside the function itself, nor inside any other functions
+  changed neither inside the function itself nor inside any other functions
   this function calls etc.
 - If you see an immutable method (or a "function with a receiver of an immutable
   type" if you will) - you can rely on it not changing the object.
@@ -245,7 +245,7 @@ types:
 - assignments to _immutable_ types
 - calls of methods with a _mutable_ receiver type on _immutable_ types
 
-It is to be noted, that all proposed changes are fully backwards-compatible and
+It is to be noted, that all proposed changes are fully backward-compatible and
 don't require any breaking changes to be introduced to the Go 1.x language
 specification. Code written in previous versions of Go 1.x will continue to
 compile and work as usual.
@@ -609,7 +609,7 @@ The examples below demonstrate a few possible combinations:
 
 #### 2.9.1. Pointer Examples
 
-##### 2.9.1.1. Immutable pointer to mutable object
+##### 2.9.1.1. Immutable pointer to a mutable object
 
 ```go
 var immut2mut const *Object = &Object{}
@@ -619,7 +619,7 @@ immut2mut.Field = 42  // fine
 immut2mut.Mutation()  // fine
 ```
 
-##### 2.9.1.2. Mutable pointer to immutable object
+##### 2.9.1.2. Mutable pointer to an immutable object
 
 ```go
 var mut2immut * const Object = &Object{}
@@ -629,7 +629,7 @@ mut2immut.Field = 42  // Compile-time error
 mut2immut.Mutation()  // Compile-time error
 ```
 
-##### 2.9.1.3. Immutable pointer to immutable object
+##### 2.9.1.3. Immutable pointer to an immutable object
 ```go
 var immut2immut const * const Object = const(&Object{})
 
@@ -748,7 +748,7 @@ for key, value := range m {
 
 #### 2.9.4. Channel Examples
 
-##### 2.9.4.1. Immutable channel of immutable objects
+##### 2.9.4.1. Immutable channels of immutable objects
 
 ```go
 func main() {
@@ -771,7 +771,7 @@ func ConstReadOnlyChannel() const <-chan const Object {
 }
 ```
 
-##### 2.9.4.2. Immutable channel of mutable objects
+##### 2.9.4.2. Immutable channels of mutable objects
 
 ```go
 func main() {
@@ -794,7 +794,7 @@ func ConstReadOnlyChannel() const <-chan Object {
 }
 ```
 
-##### 2.9.4.3. Mutable channel of immutable objects
+##### 2.9.4.3. Mutable channels of immutable objects
 
 ```go
 func main() {
@@ -857,7 +857,7 @@ func ReturnConstSlice() const [] int {
 
 #### 2.10.2. Type Casting
 There also are more complex situations where simple `const` casting is
-insufficient. In those situations the mutable type needs to be type-casted
+insufficient. In those situations, the mutable type needs to be type-casted
 `immutable type (symbol)` to an immutable type.
 
 ```go
@@ -915,8 +915,8 @@ func main() {
 }
 ```
 
-#### 2.10.3. Prohibition of Casting of Immutable- to Mutable Types
-Casting of immutable- to mutable types is forbidden because it would make it
+#### 2.10.3. Prohibition of Casting Immutable- to Mutable Types
+Casting immutable types to mutable types is forbidden because it would make it
 possible to silently void the immutability guarantee breaking the entire concept
 of immutability.
 
@@ -980,7 +980,7 @@ type ObjectInterface interface {
 ### 3.1. Benefits
 
 #### 3.1.1. Safety by Default
-Immutability stands for compile-time safety, which would then be default
+Immutability stands for compile-time safety, which would then be the default
 behavior. The developer will have to explicitly annotate mutable types using the
 `mut` modifier preventing types from accidentally being declared mutable by
 forgetting to prepend the `const` qualifier.
@@ -1007,7 +1007,7 @@ type ImmutableSlice     const [] const * const Object
 type ImmutableMap       const map[*Object] const * const Object
 type ImmutableMapAndKey const map[const * const Object] const * const Object
 ```
-A deeply-immutable matrix could therefore be declared the following way:
+A deeply-immutable matrix could, therefore, be declared the following way:
 ```go
 type ImmutableMatrix const [] const [] int
 ```
@@ -1031,16 +1031,16 @@ The `const` qualifier adds only a little cognitive overhead:
   should not change the state of the object implementing this interface.
 - When declaring a **reference type** such as a pointer, a slice a map or a
   channel we have to know whether we want to:
-	- make the object changeable, but not the its reference
+	- make the object changeable, but not its reference
 	- make the actual reference changeable, but not the object it references
 	- make both the reference and the object changeable
 
-This additional cognitive overhead, prevents us from introducing the complexity
-created by mutable shared state. Bugs introduces through mutable shared state
+This additional cognitive overhead prevents us from introducing the complexity
+created by mutable shared state. Bugs introduced through mutable shared state
 are very dangerous, hard to notice, hard to identify and pretty hard to fix.
 Justifying the simplicity of a language which can lead to very complex bugs is
 rather incorrect when considering the insignificant overhead of the `const`
-qualifier. Thus immutability is a feature the overhead of which outweighs the
+qualifier. Thus, immutability is a feature, the overhead of which outweighs the
 disadvantages of not having it.
 
 **Example:** You always have to remember to copy stuff that you don't want
@@ -1121,8 +1121,9 @@ write-protected references to mutable memory.
 
 **Long:** The value of a constant is defined during the compilation and remains
 a static piece of memory for the entire lifetime of your program. An immutable
-field, argument, return value, receiver or variable on the other hand is **not**
-static in memory, because it can still be mutated through mutable references:
+field, argument, return value, receiver or variable, on the other hand, is
+**not** static in memory, because it can still be mutated through mutable
+references:
 
 ```go
 // CreateList creates a new slice and returns both, a mutable and an immutable
@@ -1158,7 +1159,7 @@ created!
 ----
 
 ### 4.6. Why do we need immutable receivers if we already have copy-receivers?
-There's two reasons: safety and performance.
+There are two reasons: safety and performance.
 
 **Copy-receivers don't prevent mutations!** They simply can't because of
 [pointer aliasing](https://en.wikipedia.org/wiki/Pointer_aliasing):
@@ -1340,7 +1341,7 @@ constraints:
 - It must ensure the internal slice **cannot be mutated** from the outside!
 - It must ensure, that the receiver **is not mutated** in any way!
 
-Our current approach would be copying, because there's no other way to ensure
+Our current approach would be copying because there's no other way to ensure
 immutability.
 ```go
 /* WITHOUT IMMUTABILITY */
@@ -1398,7 +1399,7 @@ Simply put, the question is: *why do we have to write out the rather verbose
 `const * const Object` and `const [] const Object` instead of just
 `const *Object` and `const []Object` respectively?*
 
-There are certain situation where mutable references to immutable types are
+There are certain situations where mutable references to immutable types are
 necessary such as when we want to describe a dynamic, interlinked graph data
 structure where the nodes of the graph are immutable.
 
@@ -1431,11 +1432,11 @@ func MutateGraphNode(ref const * GraphNode) {
 
 Without this distinction, the above code wouldn't be possible and we'd have to
 compromise compile-time safety by **removing immutability** to solve similar
-problems. Reference types like pointers, slices and maps are just regular types
+problems. Reference types like pointers, slices, and maps are just regular types
 and should be treated as such consistently without any special regulations.
 
 ### 4.10. Why not implicitly convert mutable to immutable types?
-In Go types are never implicitly converted and always need to be explicitly
+In Go, types are never implicitly converted and always need to be explicitly
 casted. As the immutability operator `const` is just a type qualifier - making
 mutable types implicitly convert to immutable types would lead to inconsistency
 in the language specification.
@@ -1478,10 +1479,10 @@ The proposed `ro` qualifier described in the document above is similar to
 current proposal but still has some significant differences.
 
 #### 5.2.1. Disadvantages
-- **Backwards-incompatible:** the proposed feature requires
-  backwards-incompatible language changes.
+- **Backward-incompatible:** the proposed feature requires
+  backward-incompatible language changes.
 - **Less flexible:** _`ro` Transitivity_ describes the inheritance of
-  immutability by types referenced from immutable references which limits the
+  immutability by types referenced from immutable references, which limits the
   ability of the developer to describe *immutable references to mutable objects*
   (like a mutable slice of immutable slices `[] const [] int` etc.) and similar.
 - **Less advanced:** it doesn't propose immutable struct fields.

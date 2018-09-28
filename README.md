@@ -297,9 +297,13 @@ then the code becomes self-explaining:
   the object is initialized, even inside the scope of its origin package.
 
 #### 1.2.3. Increased Runtime Performance
-Immutability provides a way to safely avoid unnecessary copying. The compiler
-can also make optimizations based on the immutability of certain objects known
-at compile time.
+Immutability provides a way to safely avoid unnecessary copying as well as
+unnecessary indirections through mutable and immutable interfaces (because
+interfaces do have a cost).
+
+Immutability also makes specific compiler optimizations possible. Whether or not
+those optimization opportunities are exploited later on is rather irrelevant to
+this particular proposal.
 
 ## 2. Proposed Language Changes
 The language must be adjusted to support the `const` qualifier

@@ -85,7 +85,7 @@ language specification](https://blog.golang.org/toward-go2).
 		- [4.4. Why overload the `const` keyword instead of introducing a new keyword like `immutable` etc.?](#44-why-overload-the-const-keyword-instead-of-introducing-a-new-keyword-like-immutable-etc)
 		- [4.5. How are constants different from immutables?](#45-how-are-constants-different-from-immutables)
 		- [4.6. Why do we need immutable receivers if we already have copy-receivers?](#46-why-do-we-need-immutable-receivers-if-we-already-have-copy-receivers)
-		- [4.7. Why do we need immutable interfaces?](#47-why-do-we-need-immutable-interfaces)
+		- [4.7. Why do we need immutable interface types?](#47-why-do-we-need-immutable-interface-types)
 		- [4.8. Doesn't the `const` qualifier add boilerplate and make code harder to read?](#48-doesnt-the-const-qualifier-add-boilerplate-and-make-code-harder-to-read)
 		- [4.9. Why do we need the distinction between immutable and mutable reference types?](#49-why-do-we-need-the-distinction-between-immutable-and-mutable-reference-types)
 		- [4.10. Why not implicitly convert mutable to immutable types?](#410-why-not-implicitly-convert-mutable-to-immutable-types)
@@ -1425,11 +1425,14 @@ aliasing](https://en.wikipedia.org/wiki/Pointer_aliasing), thus immutable
 receivers (be it an immutable copy or an immutable pointer receiver) are
 necessary to ensure compiler-enforced safety.
 
-### 4.7. Why do we need immutable interfaces?
-Immutable interfaces guarantee that you can't call mutating methods of the
-underlying implementation through it. Passing an immutable interface to a
-function as an argument while trying to call a non-const method on it, for
-example, would generate a compile-time error:
+### 4.7. Why do we need immutable interface types?
+Immutable interface types allow us to **reuse** interface types disabling their
+mutating ability in certain scopes without having to define two separate
+interface types (one interface type with read methods only and another one with
+both mutating and non-mutating methods)
+
+Passing an immutable interface to a function as an argument while trying to call
+a mutating method on it, for example, would generate a compile-time error:
 ```go
 type Interface {
 	const Read()
@@ -1452,7 +1455,7 @@ func main() {
 }
 ```
 ```
-.example:13:11: cannot call method mutating method on immutable interface iface of type `const Interface`
+.example:13:11: cannot call mutating method on immutable interface iface (const Interface)
 ```
 
 ### 4.8. Doesn't the `const` qualifier add boilerplate and make code harder to read?

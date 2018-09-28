@@ -78,6 +78,8 @@ language specification](https://blog.golang.org/toward-go2).
 		- [3.1. Benefits](#31-benefits)
 			- [3.1.1. Safety by Default](#311-safety-by-default)
 			- [3.1.2. No Explicit Casting](#312-no-explicit-casting)
+			- [3.1.3. Less Code](#313-less-code)
+			- [3.1.4. No `const` Keyword Overloading](#314-no-const-keyword-overloading)
 	- [4. FAQ](#4-faq)
 		- [4.1. Are the items within immutable slices/maps also immutable?](#41-are-the-items-within-immutable-slicesmaps-also-immutable)
 		- [4.2. Go is all about simplicity, so why make the language more complicated?](#42-go-is-all-about-simplicity-so-why-make-the-language-more-complicated)
@@ -1102,6 +1104,16 @@ mutable. But when mutable types need to be explicitly declared mutable using the
 When all types are mutable by default then they need to be casted to *immutable*
 types before they can be used as such. But when *all* types are **immutable by
 default** then no casting is ever necessary.
+
+#### 3.1.3. Less Code
+Statistically, Most of the variables, arguments, fields, return values and
+methods are immutable, thus the frequent `const` qualifiers can be replaced by
+fewer `mut` qualifiers, which improves both readability and coding speed. The
+`mut` keyword is also shorter than `const`.
+
+#### 3.1.4. No `const` Keyword Overloading
+The need for overloading of the `const` keyword would vanish, which would
+improve semantic language consistency.
 
 ## 4. FAQ
 

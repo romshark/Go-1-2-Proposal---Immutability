@@ -537,61 +537,49 @@ func main() {
 ```
 
 ### 2.6. Immutable Interface Methods
-Immutable methods of an interface are declared using the `const` qualifier and
-guarantee that const-methods of the object implementing the interface will not
-mutate the underlying object.
+Interfaces can be obliged to require receiver type immutability using the
+`const` qualifier in the method declaration to prevent the implementing function
+from mutating the object referenced by the interface.
 ```go
+// Interface represents a strict interface with an immutable method
 type Interface interface {
 	// Read must not mutate the underlying implementation
-	const Read(offset, length const int) const []byte
+	const Read() string
 
-	// Write can mutate the underlying implementation
-	Write(offset const int, data const []byte) int
+	// Write can potentially mutate the underlying implementation
+	Write(string)
 }
 
-// ValidImplementation represents an correct implementation
-// of the Interface interface
+// ValidImplementation represents a correct implementation of Interface
 type ValidImplementation struct {
 	buffer []byte
 }
 
-// Read implements the const method, it must have an immutable receiver
-func (ci * const ValidImplementation) Read(
-	offset, length const int,
-) const []byte {
-	return const(ci.buffer[offset : offset+length])
+// Read correctly implements Interface.Read, it has an immutable receiver
+func (r * const ValidImplementation) Read() string {
+	/*...*/
 }
 
-// Write implements the non-const method,
-// it can either have a mutable or an immutable receiver
-func (ci *ValidImplementation) Write(
-	offset const int, data const []byte,
-) int {
-	itr := 0
-	for ; itr < len(ci.buffer) && itr < len(data); itr++ {
-		ci.buffer[itr + offset] = data[itr]
-	}
-	return itr + 1
+// Write correctly implements Interface.Write,
+// even though the receiver is immutable
+func (r * const ValidImplementation) Write(s string) {
+	/*...*/
 }
 
-// InvalidImplementation represents an incorrect implementation
-// of the Interface interface
+// InvalidImplementation represents an incorrect implementation of Interface
 type InvalidImplementation struct {
 	buffer []byte
 }
 
-// Read tries to implement the const method using a mutable receiver
-func (ci *InvalidImplementation) Read(
-	offset, length const int,
-) const []byte {
+// Read incorrectly implements the immutable Interface.Read,
+// the receiver must be of type: * const InvalidImplementation
+func (r * InvalidImplementation) Read() string {
 	/*...*/
 }
 
-func (ci *InvalidImplementation) Write(
-	offset const int, data const []byte,
-) int {
+// Write correctly implements Interface.Write
+func (r * InvalidImplementation) Write(s string) {
 	/*...*/
-	return 0
 }
 
 func main() {
@@ -600,7 +588,7 @@ func main() {
 }
 ```
 ```
-.example.go:55:26: cannot use InvalidImplementation literal (type *InvalidImplementation) as type Interface in assignment:
+.example.go:43:26: cannot use InvalidImplementation literal (type *InvalidImplementation) as type Interface in assignment:
 	*InvalidImplementation does not implement Interface (Read method has mutable pointer receiver, expected an immutable receiver type)
 ```
 

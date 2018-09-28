@@ -184,14 +184,14 @@ error-prone and redundant. Documentation can easily get out of sync with the
 actual code because it can't be verified algorithmically.
 
 #### 1.1.3. The - Slow but Safe vs Dangerous but Fast - Dilemma
-As previously mentioned, copies are the only way to achieve immutability in Go
-1.x, but copies inevitably degrade runtime performance. This dilemma encourages
-us to either write unsafe mutable APIs when targeting optimal runtime
-performance or safe but slow and copy-code bloated ones.
+Copies are the only way to achieve immutability in Go 1.x, but copies inevitably
+degrade runtime performance. This dilemma encourages Go 1.x developers to either
+write unsafe mutable APIs when targeting optimal runtime performance or safe but
+slow and copy-code bloated ones.
 
-We have to choose between performance and safety even though having both would
-be possible with compiler-enforced immutable types at the cost of a slightly
-decreased compilation time.
+Optional performance and code safety are, currently, mutually exclusive, even
+though having both would be possible with compiler-enforced immutable types at
+the cost of a slightly decreased compilation time.
 
 #### 1.1.4. Inconsistent Concept of Constants
 Currently, Go 1.x won't allow non-scalar constants such as constant slices:

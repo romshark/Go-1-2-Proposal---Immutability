@@ -195,6 +195,10 @@ Support for immutable types would provide the benefits listed below and sorted
 by importance in descending order.
 
 #### 1.2.1. Safe Code
+Immutable types make APIs less ambiguous. Making previously immutable APIs
+mutable requires backward-incompatible API changes forcing the API user to pay
+attention to where and how state is likely to mutate.
+
 With immutable types the situation described in the [previous
 section](#111-ambiguous-code-and-dangerous-bugs) wouldn't even be possible,
 because the author of the function of the external package would need to

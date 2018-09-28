@@ -1094,14 +1094,13 @@ type ObjectInterface interface {
 ### 3.1. Benefits
 
 #### 3.1.1. Safety by Default
-Immutability stands for compile-time safety, which would then be the default
-behavior. The developer will have to explicitly annotate mutable types using the
-`mut` modifier preventing types from accidentally being declared mutable by
-forgetting to prepend the `const` qualifier.
+It's easy to forget to add the `const` qualifier and accidentally make something
+mutable. But when mutable types need to be explicitly declared mutable using the
+`mut` qualifier writing code becomes even safer.
 
 #### 3.1.2. No Explicit Casting
 When all types are mutable by default then they need to be casted to *immutable*
-types before they can be used as such. But when all types are **immutable by
+types before they can be used as such. But when *all* types are **immutable by
 default** then no casting is ever necessary.
 
 ## 4. FAQ

@@ -77,7 +77,7 @@ language specification](https://blog.golang.org/toward-go2).
 	- [3. Immutability by Default (Go >= 2.x)](#3-immutability-by-default-go--2x)
 		- [3.1. Benefits](#31-benefits)
 			- [3.1.1. Safety by Default](#311-safety-by-default)
-			- [3.1.2. No Casting](#312-no-casting)
+			- [3.1.2. No Explicit Casting](#312-no-explicit-casting)
 	- [4. FAQ](#4-faq)
 		- [4.1. Are the items within immutable slices/maps also immutable?](#41-are-the-items-within-immutable-slicesmaps-also-immutable)
 		- [4.2. Go is all about simplicity, so why make the language more complicated?](#42-go-is-all-about-simplicity-so-why-make-the-language-more-complicated)
@@ -1099,11 +1099,10 @@ behavior. The developer will have to explicitly annotate mutable types using the
 `mut` modifier preventing types from accidentally being declared mutable by
 forgetting to prepend the `const` qualifier.
 
-#### 3.1.2. No Casting
+#### 3.1.2. No Explicit Casting
 When all types are mutable by default then they need to be casted to *immutable*
-types before they can be used as such in case of explicit casting (which is not
-the case for implicit `non-const` to `const` casting though). But when all types
-are immutable by default then no casting is ever necessary.
+types before they can be used as such. But when all types are **immutable by
+default** then no casting is ever necessary.
 
 ## 4. FAQ
 

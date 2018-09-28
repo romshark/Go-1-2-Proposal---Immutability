@@ -1152,12 +1152,15 @@ func (s * const Server) ConnectedClients() const []Client {
 ---
 
 ### 4.3. Aren't other features such as generics and better error handling not more important right now?
-**No**, absolutely not! Unlike with topics such as *"generics"* and *"how to
+Unlike other language specification issues such as *"generics"* and *"how to
 handle errors more elegantly"* there's really not much to argue about in case of
-immutability. It should be clear that it makes code both safer and easier to
-make sense of. It doesn't require any breaking changes and it doesn't
-even require a single new language keyword. Therefore immutability should be
-considered of higher priority compared to other previously mentioned topics.
+immutability. It should be clear that:
+- it makes code both safer and easier to make sense of,
+- it doesn't require any breaking changes,
+- it doesn't even require a single new language keyword.
+
+Therefore immutability should be considered of higher priority compared to other
+language design proposals.
 
 ----
 

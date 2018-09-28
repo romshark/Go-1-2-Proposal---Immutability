@@ -936,7 +936,8 @@ of immutability.
 ### 2.11. Implicit Casting
 
 #### 2.11.1. Implicit Casting of Pointer Receivers
-Pointer receivers may be implicitly casted because they're semantically similar.
+Pointer receivers are implicitly casted in both directions (mutable to immutable
+and vice-versa) when the types they're pointing to match.
 
 Methods:
 ```go

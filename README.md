@@ -286,17 +286,15 @@ or during the users local build in the worst case.
 With immutable types, there's no need to explicitly describe mutability
 recommendations in the documentation. When immutable types are declared as such
 then the code becomes self-explaining:
-- If you see an argument of an immutable type - you can rely on it not being
-  changed neither inside the function itself nor inside any other functions
-  this function calls etc.
-- If you see an immutable method (or a "function with a receiver of an immutable
-  type" if you will) - you can rely on it not changing the object.
-- If you return a return value of an immutable type - you can rely on it not
-  being mutated by the function caller.
-- If you see a field of an immutable type - you can rely on it not being changed
-  as soon as the object is initialized, even inside its origin package.
-- If you see a variable of an immutable type - you can rely on it not being
-  changed in the context it's in as well as the contexts it's passed over to.
+- An **argument** or a **variable** of an immutable type can be relied on not
+  being changed neither inside the scope it's declared in, nor in the scopes
+  it's passed to.
+- An immutable **method** (or a "function with a **receiver** of an immutable
+  type" if you will) - can be relied on not changing the object it operates on.
+- A **return value** of an immutable type can be relied on not being changed by
+  the function caller.
+- A **field** of an immutable type can be relied on not being changed as soon as
+  the object is initialized, even inside the scope of its origin package.
 
 #### 1.2.3. Increased Runtime Performance
 Immutability provides a way to safely avoid unnecessary copying. The compiler

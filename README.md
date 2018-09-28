@@ -31,7 +31,7 @@ language specification](https://blog.golang.org/toward-go2).
 	- [1. Introduction](#1-introduction)
 		- [1.1. Current Problems](#11-current-problems)
 			- [1.1.1. Ambiguous Code and Dangerous Bugs](#111-ambiguous-code-and-dangerous-bugs)
-			- [1.1.2. Vague Documentation](#112-vague-documentation)
+			- [1.1.2. Vague and Bloated Documentation](#112-vague-and-bloated-documentation)
 			- [1.1.3. The - Slow but Safe vs Dangerous but Fast - Dilemma](#113-the---slow-but-safe-vs-dangerous-but-fast---dilemma)
 			- [1.1.4. Inconsistent Concept of Constants](#114-inconsistent-concept-of-constants)
 		- [1.2. Benefits](#12-benefits)
@@ -132,29 +132,56 @@ disadvantages listed below and sorted by importance in descending order.
 
 #### 1.1.1. Ambiguous Code and Dangerous Bugs
 The absence of immutable types can lead to ambiguous code that results
-in dangerous, hard to find bugs.
+in dangerous, hard to find bugs. Consider the following method definition:
 
-Imagine the following situation: you add a new 3-rd party package `xyz` to your
-project as an external dependency. This package provides an exported function
-`xyz.ReadSlice(slice []string)`. The documentation of this function promises
-that the provided slice of strings will not be mutated, so you write your code
-with this assumption in mind.
+```go
+// Method ...
+func (r *T) Method(a *T, v []*T) (rv *T) {/*...*/}
+```
+The above code is ambiguous, it doesn't represent the intentions of its original
+author:
+- Will it produce any side-effects on `r`?
+- Will it mutate the `T` referenced by `a`?
+- Will it mutate `v`?
+- Will it mutate any `T` referenced by any item of `v`?
+- Is the `T` referenced by `rv` allowed to be mutated?
 
-At any time the vendor of the external package might change its behavior
-either intentionally (updating the documentation) or unintentionally (the slice
-might get aliased and thus unintentionally mutate the original slice somewhere
-in the depths of the package or its external dependencies).
+All those questions can lead to bugs if they're not properly answered, and
+[documentation never answers them
+reliably](#112-vague-and-bloated-documentation))
 
-Chances are high that either you miss the changed documentation or the behavior
-of the code changes without acknowledging you at all in the worst case! This can
-obviously lead to serious and hard to find bugs.
+If the above function is exported from a 3-rd party package `xyz` that's
+imported to a project `P` as an external dependency and the documentation
+promises (or "claims") to not mutate any of the symbols, the code in `P` will be
+written with this assumption in mind.
 
-#### 1.1.2. Vague Documentation
-We have to manually document what variables, fields, arguments, receivers and
-return values **must not** be mutated to avoid the mentioned problems. Not only
-does this unnecessarily complicate the documentation, but it also makes it
-error-prone and redundant. The documentation can easily get out of sync with
-the actual code.
+At any time the vendor of `xyz` might change its behavior, either intentionally
+or unintentionally, which will introduce bugs and data corruption:
+- `a`, `v` or any items of `v` might get aliased and mutated either directly (in
+  the scope of `xyz.T.Method`) or indirectly (at any unspecified point in time).
+- New side-effects could be introduced to `r`.
+- `rv` might get aliased and introduce unwanted side-effects when mutated by the
+  `xyz.T.Method` caller.
+
+In the worst case the maintainers of `P` won't even be informed about the
+mutations that were unintentionally introduced to a newer version of
+`xyz.T.Method` through a bug in its implementation. But even if the vendors of
+`xyz` correctly update the changelog and the documentation introducing new
+intentional side-effects, chances are high that the maintainers of `P` miss the
+changes in the documentation and fail to react accordingly. `P` will continue to
+compile, but it's **outputs will become corrupted** which can't always be easily
+detected even in the presence of extensive automated testing.
+
+#### 1.1.2. Vague and Bloated Documentation
+Documentation never represents **actual** intentions, it represents **claimed**
+intentions. Claimed intentions can't be relied on, because claims are not
+guaranteed to remain in sync with actual code behavior.
+
+To avoid ambiguous code developers often describe *mutability recommendations*
+of variables, fields, arguments, methods and return values. Not only does this
+unnecessarily complicate and bloat up the documentation, but it also makes it
+error-prone and redundant. Documentation can easily get out of sync with the
+actual code because it can't be verified algorithmically.
 
 #### 1.1.3. The - Slow but Safe vs Dangerous but Fast - Dilemma
 As previously mentioned, copies are the only way to achieve immutability in Go

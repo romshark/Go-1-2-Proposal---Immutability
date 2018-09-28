@@ -136,12 +136,16 @@ in dangerous, hard to find bugs. Consider the following method definition:
 
 ```go
 // Method ...
-func (r *T) Method(a *T, v []*T) (rv *T) {/*...*/}
+func (r *T) Method(
+	a *T,
+	b *T,
+	v []*T,
+) (rv *T) {/*...*/}
 ```
 The above code is ambiguous, it doesn't represent the intentions of its original
 author:
 - Will it produce any side-effects on `r`?
-- Will it mutate the `T` referenced by `a`?
+- Will it mutate the `T`s referenced by `a` and `b`?
 - Will it mutate `v`?
 - Will it mutate any `T` referenced by any item of `v`?
 - Is the `T` referenced by `rv` allowed to be mutated?
@@ -157,8 +161,9 @@ written with this assumption in mind.
 
 At any time the vendor of `xyz` might change its behavior, either intentionally
 or unintentionally, which will introduce bugs and data corruption:
-- `a`, `v` or any items of `v` might get aliased and mutated either directly (in
-  the scope of `xyz.T.Method`) or indirectly (at any unspecified point in time).
+- `a`, `b`, `v` or any items of `v` might get aliased and mutated either
+  directly (in the scope of `xyz.T.Method`) or indirectly (at any unspecified
+  point in time).
 - New side-effects could be introduced to `r`.
 - `rv` might get aliased and introduce unwanted side-effects when mutated by the
   `xyz.T.Method` caller.
@@ -221,31 +226,61 @@ Support for immutable types would provide the benefits listed below and sorted
 by importance in descending order.
 
 #### 1.2.1. Safe Code
-Immutable types make APIs less ambiguous. Making previously immutable APIs
-mutable requires backward-incompatible API changes forcing the API user to pay
-attention to where and how state is likely to mutate.
+Immutable types make APIs less ambiguous.
 
-With immutable types the situation described in the [previous
+With immutable types the situations described in the [previous
 section](#111-ambiguous-code-and-dangerous-bugs) wouldn't even be possible,
 because the author of the function of the external package would need to
-explicitly denote the type of the argument as immutable to make the compiler
-enforce the guarantee, while the user of the function would make decisions based
-on the actual function declaration in the code instead of relying on the
-potentially inconsistent documentation.
+explicitly denote immutable types as such to make the compiler enforce the
+guarantee:
 
-This way - whenever you see a mutable reference type argument you'll know you
-have to assume that the state of the referenced object will potentially be
-mutated. Contrary you can safely assume that the referenced object won't be
-mutated if it's declared immutable.
+```go
+// Method ...
+func (r * const T) Method(
+	a * const T,
+	b * T,
+	const v [] * const T,
+) (
+	rv * const T,
+	rv2 * T,
+) {
+	/*...*/
+}
+```
+The above code is unambiguous and precise. It clearly represent the intentions
+of its original author and answers all critical questions reliably:
+- Will it produce any side-effects on `r`?
+    - **No, it can't. It's receiver is immutable**
+- Will it mutate the `T` referenced by `a`?
+    - **No, it can't. The `T` referenced by `a` is immutable**
+- Will it mutate `v`?
+	- **No, it can't. `v` is immutable**
+- Will it mutate any `T` referenced by any item of `v`?
+    - **No, it can't. The `T`s referenced by any item of `v` are immutable**
+- Is the `T` referenced by `rv` allowed to be mutated?
+	- **No, it's not. The `T` referenced by `a` is immutable**
+- Will it mutate the `T` referenced by `b`?
+	- **Yes, it potentially will!**
+- Is the `T` referenced by `rv2` allowed to be mutated?
+	- **Yes, it won't lead to unwanted side-effects**
 
-If the vendor of the external function decides to change the mutability of an
-argument he/she will have to change the argument types introducing breaking API
-changes causing compiler errors and making the user pay attention to whether or
-not everything's right. The vendor won't be able to just silently introduce
-mutations! The compiler will prevent this from happening either before the
-vendor releases the update (assuming that the code is compiled before
-publication by a CI system) or during the users local build (in the worst case)
-preventing insidious bugs from being introduced.
+Whenever a mutable type is taken, returned or provided it's assumed that its
+state will potentially be mutated.
+
+The user of this function would make decisions based on the actual function
+definition in the code instead of relying on the potentially inconsistent
+documentation.
+
+If the vendors of this function decide to change the mutability of either any
+input or output type or the mutability of the object the method operates on -
+they will have to change the type introducing breaking API changes causing
+compiler errors and making the user pay attention to whether or not everything's
+right.
+
+The vendors won't be able to just silently introduce mutations causing bugs! The
+compiler will prevent this from happening either before the vendors release the
+update (assuming that the code is compiled by a CI/CD system before publication)
+or during the users local build in the worst case.
 
 #### 1.2.2. Self-Explaining Code
 With immutable types, there's no need to explicitly describe mutability

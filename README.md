@@ -162,19 +162,19 @@ written with this assumption in mind.
 At any time the vendor of `xyz` might change its behavior, either intentionally
 or unintentionally, which will introduce bugs and data corruption:
 - `a`, `b`, `v` or any items of `v` might get aliased and mutated either
-  directly (in the scope of `xyz.T.Method`) or indirectly (at any unspecified
+  directly (in the scope of `xyz.T.Method`) or indirectly (at an unspecified
   point in time).
 - New side-effects could be introduced to `r`.
 - `rv` might get aliased and introduce unwanted side-effects when mutated by the
   `xyz.T.Method` caller.
 
-In the worst case the maintainers of `P` won't even be informed about the
+In the worst case, the maintainers of `P` won't even be informed about the
 mutations that were unintentionally introduced to a newer version of
 `xyz.T.Method` through a bug in its implementation. But even if the vendors of
 `xyz` correctly update the changelog and the documentation introducing new
 intentional side-effects, chances are high that the maintainers of `P` miss the
 changes in the documentation and fail to react accordingly. `P` will continue to
-compile, but it's **outputs will become corrupted** which can't always be easily
+compile, but its **outputs will become corrupted** which can't always be easily
 detected even in the presence of extensive automated testing.
 
 #### 1.1.2. Vague and Bloated Documentation
@@ -271,7 +271,7 @@ The user of this function would make decisions based on the actual function
 definition in the code instead of relying on the potentially inconsistent
 documentation.
 
-If the vendors of this function decide to change the mutability of either any
+If the vendors of this function decide to change the mutability of either an
 input or output type or the mutability of the object the method operates on -
 they will have to change the type introducing breaking API changes causing
 compiler errors and making the user pay attention to whether or not everything's
@@ -280,7 +280,7 @@ right.
 The vendors won't be able to just silently introduce mutations causing bugs! The
 compiler will prevent this from happening either before the vendors release the
 update (assuming that the code is compiled by a CI/CD system before publication)
-or during the users local build in the worst case.
+or during the user's local build in the worst case.
 
 #### 1.2.2. Self-Explaining Code
 With immutable types, there's no need to explicitly describe mutability
@@ -312,7 +312,7 @@ inside type definitions to denote certain types as immutable.
 The compiler needs to perform an additional scan for mutations on immutable
 types:
 - assignments to _immutable_ types
-- calls of methods with a _mutable_ receiver type on _immutable_ types
+- any calls of methods with a _mutable_ receiver type on _immutable_ types
 
 It is to be noted, that all proposed changes are fully backward-compatible and
 don't require any breaking changes to be introduced to the Go 1.x language
@@ -359,9 +359,9 @@ func main() {
 ----
 
 ### 2.2. Immutable Methods
-Immutable methods are declared using the `const` qualifier on the function
-receiver and guarantee to not mutate the receiver in any way when called.
-They can safely be used in immutable contexts, such as within other
+Immutable methods are declared using the `const` qualifier on the
+function-receiver and guarantee to not mutate the receiver in any way when
+called. They can safely be used in immutable contexts, such as within other
 immutables methods and/or on immutable objects.
 
 Technically, this feature should rather be called "immutable function
@@ -1151,7 +1151,7 @@ The `const` qualifier adds only a little cognitive overhead:
   caller the permission to modify the object we returned.
 - When declaring a **variable** we have to know, whether we want to change it
   in this context.
-- When declaring a **function receiver** we have to know, whether this function
+- When declaring a **function-receiver** we have to know, whether this function
   will change anything inside the receiver.
 - When declaring an **interface method** we have to know, whether this method
   should not change the state of the object implementing this interface.

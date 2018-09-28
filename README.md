@@ -240,12 +240,12 @@ mutated if it's declared immutable.
 
 If the vendor of the external function decides to change the mutability of an
 argument he/she will have to change the argument types introducing breaking API
-changes causing compiler errors and making you pay attention to whether or
-not everything's right. The vendor won't be able to just silently mutate your
-objects referenced by immutable references! The compiler will prevent this
-either before the vendor releases the update (assuming that the code is compiled
-before publication by a CI system) or during your local build (in the worst
-case) preventing insidious bugs from being introduced.
+changes causing compiler errors and making the user pay attention to whether or
+not everything's right. The vendor won't be able to just silently introduce
+mutations! The compiler will prevent this from happening either before the
+vendor releases the update (assuming that the code is compiled before
+publication by a CI system) or during the users local build (in the worst case)
+preventing insidious bugs from being introduced.
 
 #### 1.2.2. Self-Explaining Code
 With immutable types, there's no need to explicitly describe mutability

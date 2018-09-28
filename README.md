@@ -180,14 +180,13 @@ _deliberately_ designed to only permit constant of basic types.
 
 But many developers still claim it to be a major design flaw because exclusive
 immutability for scalar types only leads to inconsistency in the language
-design.
-
-With immutable type support the problem described in the linked proposal can be
-solved consistently without affecting the constants specification:
+design. What most developers really need is not *constants of arbitrary types*
+but rather **immutable package-scope variables**, which can be implemented
+consistently with the help of immutable types:
 ```
 var each2 const []byte = const([]byte{'e', 'a', 'c', 'h'})
 ```
-Even though technically `each2` is not a *constant* but rather an *immutable
+Even though technically `each2` is not a *constant* but an *immutable
 package-scope variable* - it solves the mutability problem.
 
 ### 1.2. Benefits

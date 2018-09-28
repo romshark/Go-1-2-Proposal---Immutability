@@ -35,7 +35,7 @@ language specification](https://blog.golang.org/toward-go2).
 			- [1.1.3. The - Slow but Safe vs Dangerous but Fast - Dilemma](#113-the---slow-but-safe-vs-dangerous-but-fast---dilemma)
 			- [1.1.4. Inconsistent Concept of Constants](#114-inconsistent-concept-of-constants)
 		- [1.2. Benefits](#12-benefits)
-			- [1.2.1. Safe Code](#121-safe-code)
+			- [1.2.1. Safe and Precise Code](#121-safe-and-precise-code)
 			- [1.2.2. Self-Explaining Code](#122-self-explaining-code)
 			- [1.2.3. Increased Runtime Performance](#123-increased-runtime-performance)
 	- [2. Proposed Language Changes](#2-proposed-language-changes)
@@ -225,7 +225,7 @@ package-scope variable* - it solves the mutability problem.
 Support for immutable types would provide the benefits listed below and sorted
 by importance in descending order.
 
-#### 1.2.1. Safe Code
+#### 1.2.1. Safe and Precise Code
 Immutable types make APIs less ambiguous.
 
 With immutable types the situations described in the [previous

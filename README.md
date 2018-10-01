@@ -1631,10 +1631,16 @@ current proposal but still has some significant differences.
 #### 5.2.1. Disadvantages
 - **Backward-incompatible:** the proposed feature requires
   backward-incompatible language changes.
-- **Less flexible:** _`ro` Transitivity_ describes the inheritance of
-  immutability by types referenced from immutable references, which limits the
-  ability of the developer to describe *immutable references to mutable objects*
-  (like a mutable slice of immutable slices `[] const [] int` etc.) and similar.
+- **Limiting and partially pointless:** _`ro` Transitivity_ describes the
+  inheritance of immutability by types referenced by immutable references, which
+  limits the ability of the developer to describe *immutable references to
+  mutable objects* and similar. This limitation will make developers avoid using
+  `ro` types alltogether and use unsafe mutable types instead when a mix between
+  mutable and immutable references is necessary. An immutable slice of mutable
+  slices: `const [] [] int` wouldn't be possible with `ro` transitivity and
+  would leave the developer no choice but turning it into a mutable slice of
+  mutable slices: `[][]int` making the entire concept of read-only types
+  partially pointless.
 - **Less advanced:** it doesn't propose immutable struct fields.
 
 #### 5.2.2. Differences

@@ -948,23 +948,25 @@ insufficient. In those situations, the mutable type needs to be type-casted
 `immutable type (symbol)` to an immutable type.
 
 ```go
-// ReturnConstTMatrix returns an immutable slice of immutable slices of floats
-func ReturnConstTMatrix() const [] const [] * const T {
-	var test [] [] *T
+// ReturnConstTPointerMatrix returns an immutable slice of immutable slices of
+// pointers to immutable instances of T
+func ReturnConstTPointerMatrix() const [] const [] * const T {
+    var test [] [] *T
 
-	return make([] [] *T, 3) // Compile-time error
-	return [] [] *T          // Compile-time error
-	return test              // Compile-time error
+    return make([] [] *T, 3)   // Compile-time error
+    return [] [] *T            // Compile-time error
+    return test                // Compile-time error
+    return const [][]*T (test) // Compile-time error
 
-	return make(const [] const [] * const T, 3)
-	return const [] const [] * const T {
-		const [] * const T {* const T ( &T{} )},
-		const [] * const T {* const T ( &T{} )},
-		const [] * const T {* const T ( &T{} )},
-	}
+    // cast the deeply mutable to a deeply immutable type
+    return const [] const [] * const T (test)
 
-	// const-type-cast
-	return const [] const [] *T (test)
+    return make(const [] const [] * const T, 3)
+    return const [] const [] * const T {
+        const [] * const T {* const T ( &T{} )},
+        const [] * const T {* const T ( &T{} )},
+        const [] * const T {* const T ( &T{} )},
+    }
 }
 ```
 
@@ -977,6 +979,7 @@ func ReturnMap() map[const T] * const T {
 	return make(map[T] *T, 3) // Compile-time error
 	return map[T] *T {}       // Compile-time error
 	return test               // Compile-time error
+	return const map[T] *T    // Compile-time error
 
 	return make(map[const T] * const T, 3)
 	return map[const T] * const T {nil, nil, nil}

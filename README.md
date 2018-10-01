@@ -104,9 +104,22 @@ language specification](https://blog.golang.org/toward-go2).
 Immutability is a technique used to prevent mutable shared state, which is a
 very common source of nasty, hard to find and hard to even identify bugs,
 especially in concurrent environments. It can be achieved through **immutable
-types**. The compiler scans all objects of immutable types for modification
-attempts such as assignments and calls to mutating methods and fails the
-compilation returning errors if any illegal mutation attempts were identified.
+types**. This proposal is based on 5 fundamental rules:
+
+- **I.** Each and every type has an immutable counterpart.
+- **II.** Assignments to objects of an immutable type are illegal.
+- **III.** Calls to methods with a mutable receiver type on objects of an
+  immutable type are illegal.
+- **IV.** Mutable types can be casted to their immutable counterparts, but not
+  the other way around.
+- **V.** Immutable interface methods must be implemented by a method with an
+  immutable receiver type.
+
+These rules can be enforced by making the compiler scan all objects of immutable
+types for modification attempts such as assignments and calls to mutating
+methods and fail the compilation if any illegal mutation attempts were
+identified. The compiler would also need to check, whether types correctly
+implement immutable interface methods.
 
 A Go 1.x developer's current approach to immutability is manual copying because
 Go 1.x doesn't currently provide any compiler-enforced immutable types. This
@@ -311,10 +324,17 @@ this particular proposal.
 The language must be adjusted to support the `const` qualifier
 inside type definitions to denote certain types as immutable.
 
-The compiler needs to perform an additional scan for mutations on immutable
-types:
-- assignments to _immutable_ types
-- any calls of methods with a _mutable_ receiver type on _immutable_ types
+The compiler must enforce the following rules:
+- Assignments to objects of an immutable type are illegal.
+- Calls to methods with a mutable receiver type on objects of an immutable type
+  are illegal.
+- Immutable types cannot be casted to their mutable counterparts.
+- Types must implement immutable interface methods using an immutable receiver
+  type.
+- Mutable types must be explicitly casted to their immutable counterparts.
+- During method calls - pointer receivers must be implicitly casted in both
+  directions (mutable to immutable and vice-versa) if the types of the objects
+  they're pointing to are equal.
 
 It is to be noted, that all proposed changes are fully backward-compatible and
 don't require any breaking changes to be introduced to the Go 1.x language

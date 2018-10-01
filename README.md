@@ -1230,7 +1230,7 @@ func (s *Server) ConnectedClients() []Client {
 }
 ```
 This certainly makes both code and documentation more complicated and error
-prone (and slow) than it could be with immutability:
+prone (and slower) than it could be with immutability:
 ```go
 // ConnectedClients returns the list of all currently connected clients.
 func (s * const Server) ConnectedClients() const []Client {

@@ -68,8 +68,8 @@ language specification](https://blog.golang.org/toward-go2).
 				- [2.9.4.1. Immutable channels of immutable objects](#2941-immutable-channels-of-immutable-objects)
 				- [2.9.4.2. Immutable channels of mutable objects](#2942-immutable-channels-of-mutable-objects)
 				- [2.9.4.3. Mutable channels of immutable objects](#2943-mutable-channels-of-immutable-objects)
-		- [2.10. Type Casting](#210-type-casting)
-			- [2.10.1. Simple Casting](#2101-simple-casting)
+		- [2.10. Explicit Type Casting](#210-explicit-type-casting)
+			- [2.10.1. Simple Cast](#2101-simple-cast)
 			- [2.10.2. Literal Type Casting](#2102-literal-type-casting)
 			- [2.10.3. Prohibition of Casting Immutable- to Mutable Types](#2103-prohibition-of-casting-immutable--to-mutable-types)
 		- [2.11. Implicit Casting](#211-implicit-casting)
@@ -77,20 +77,19 @@ language specification](https://blog.golang.org/toward-go2).
 	- [3. Immutability by Default (Go >= 2.x)](#3-immutability-by-default-go--2x)
 		- [3.1. Benefits](#31-benefits)
 			- [3.1.1. Safety by Default](#311-safety-by-default)
-			- [3.1.2. No Explicit Casting](#312-no-explicit-casting)
-			- [3.1.3. Less Code](#313-less-code)
-			- [3.1.4. No `const` Keyword Overloading](#314-no-const-keyword-overloading)
+			- [3.1.2. Less Code](#312-less-code)
+			- [3.1.3. No `const` Keyword Overloading](#313-no-const-keyword-overloading)
 	- [4. FAQ](#4-faq)
 		- [4.1. Are the items within immutable slices/maps also immutable?](#41-are-the-items-within-immutable-slicesmaps-also-immutable)
 		- [4.2. Go is all about simplicity, so why make the language more complicated?](#42-go-is-all-about-simplicity-so-why-make-the-language-more-complicated)
 		- [4.3. Aren't other features such as generics and better error handling not more important right now?](#43-arent-other-features-such-as-generics-and-better-error-handling-not-more-important-right-now)
 		- [4.4. Why overload the `const` keyword instead of introducing a new keyword like `immutable` etc.?](#44-why-overload-the-const-keyword-instead-of-introducing-a-new-keyword-like-immutable-etc)
-		- [4.5. How are constants different from immutables?](#45-how-are-constants-different-from-immutables)
+		- [4.5. How are constants different from immutable types?](#45-how-are-constants-different-from-immutable-types)
 		- [4.6. Why do we need immutable receivers if we already have copy-receivers?](#46-why-do-we-need-immutable-receivers-if-we-already-have-copy-receivers)
 		- [4.7. Why do we need immutable interface types?](#47-why-do-we-need-immutable-interface-types)
 		- [4.8. Doesn't the `const` qualifier add boilerplate and make code harder to read?](#48-doesnt-the-const-qualifier-add-boilerplate-and-make-code-harder-to-read)
 		- [4.9. Why do we need the distinction between immutable and mutable reference types?](#49-why-do-we-need-the-distinction-between-immutable-and-mutable-reference-types)
-		- [4.10. Why not implicitly convert mutable to immutable types?](#410-why-not-implicitly-convert-mutable-to-immutable-types)
+		- [4.10. Why implicitly cast mutable to immutable types?](#410-why-implicitly-cast-mutable-to-immutable-types)
 	- [5. Other Proposals](#5-other-proposals)
 		- [5.1. proposal: spec: add read-only slices and maps as function arguments #20443](#51-proposal-spec-add-read-only-slices-and-maps-as-function-arguments-20443)
 			- [5.1.1. Disadvantages](#511-disadvantages)
@@ -110,7 +109,7 @@ types**. This proposal is based on 5 fundamental rules:
 - **II.** Assignments to objects of an immutable type are illegal.
 - **III.** Calls to methods with a mutable receiver type on objects of an
   immutable type are illegal.
-- **IV.** Mutable types can be casted to their immutable counterparts, but not
+- **IV.** Mutable types can be cast to their immutable counterparts, but not
   the other way around.
 - **V.** Immutable interface methods must be implemented by a method with an
   immutable receiver type.
@@ -128,7 +127,7 @@ with.
 
 Ideally, a safe programming language should enforce [immutability by
 default](#3-immutability-by-default-go--2x) where all types are immutable unless
-they're explicitly annotated as mutable. This concept would require significant,
+they're explicitly qualified as mutable. This concept would require significant,
 backward-incompatible language changes breaking existing Go 1.x code, thus such
 an approach to immutability would only be possible in a new
 backward-incompatible Go 2.x language specification.
@@ -231,7 +230,7 @@ design. What most developers really need is not *constants of arbitrary types*
 but rather **immutable package-scope variables**, which can be implemented
 consistently with the help of immutable types:
 ```
-var each2 const []byte = const([]byte{'e', 'a', 'c', 'h'})
+var each2 const []byte = []byte{'e', 'a', 'c', 'h'}
 ```
 Even though technically `each2` is not a *constant* but an *immutable
 package-scope variable* - it solves the mutability problem.
@@ -325,15 +324,16 @@ The language must be adjusted to support the `const` qualifier
 inside type definitions to denote certain types as immutable.
 
 The compiler must enforce the following rules:
+- Immutable types are declared with the `const` qualifier prepended.
 - Assignments to objects of an immutable type are illegal.
 - Calls to methods with a mutable receiver type on objects of an immutable type
   are illegal.
-- Immutable types cannot be casted to their mutable counterparts.
+- Immutable types cannot be cast to their mutable counterparts.
 - Types must implement immutable interface methods using an immutable receiver
   type.
-- Mutable types must be explicitly casted to their immutable counterparts.
-- During method calls - pointer receivers must be implicitly casted in both
-  directions (mutable to immutable and vice-versa) if the types of the objects
+- Mutable types are implicitly cast to their immutable counterparts.
+- During method calls - pointer receivers must be implicitly cast in both
+  directions (allowing immutable to mutable cast) if the types of the objects
   they're pointing to are equal.
 
 It is to be noted, that all proposed changes are fully backward-compatible and
@@ -407,7 +407,7 @@ func (o * const Object) ImmutableMethod() const * const Object {
     o.MutatingMethod()                      // Compile-time error
     o.mutableField = &Object{}              // Compile-time error
     o.mutableField.mutableField = &Object{} // Compile-time error
-    return const * const Object(o.mutableField)
+    return o.mutableField
 }
 
 func main() {
@@ -485,11 +485,11 @@ func (p *Object) MutatingMethod() {
 
 // ReturnImmutable returns an immutable value
 func ReturnImmutable() const * const Object {
-	return const * const Object(&Object{
+	return &Object{
 		MutableField: &Object{
 			MutableField: &Object{},
 		},
-	})
+	}
 }
 
 func main() {
@@ -543,8 +543,8 @@ func main() {
 
 	// The var declaration version:
 	// (this statement could be shortened using a type alias)
-	var obj_var_long const * const Object = const * const Object(NewObject())
-	var obj_var ConstRef = ConstRef(NewObject())
+	var obj_var_long const * const Object = NewObject()
+	var obj_var ConstRef = NewObject()
 
 	obj.MutableField = &Object{} // Compile-time error
 	obj.MutatingMethod()         // Compile-time error
@@ -606,7 +606,7 @@ func (r * InvalidImplementation) Write(s string) {
 
 func main() {
 	var iface Interface = &InvalidImplementation // Compile-time error
-	iface.Write(0, const([]byte("example")))
+	iface.Write(0, "example")
 }
 ```
 ```
@@ -621,11 +621,11 @@ Immutability of slices is always inherited from their parent slice. Sub-slicing
 immutable slices results in new immutable slices:
 ```go
 func ReturnConstSlice() const []int {
-	return const([]int {1, 2, 3})
+	return []int {1, 2, 3}
 }
 
 func main() {
-	originalSlice := const []int{1, 2, 3}
+	originalSlice := const([]int{1, 2, 3})
 	subSlice := originalSlice[:1]
 
 	originalSlice[0] = 4 // Compile-time error
@@ -648,15 +648,18 @@ Taking the address of an *immutable* variable results in a *mutable* pointer to
 an *immutable* object:
 
 ```go
-var t const T = const(T{})
+var t const T = T{}
 t_pointer := &t // * const T
 ```
 
 To take an *immutable* pointer from an *immutable* variable explicit casting is
-needed:
+necessary:
 ```go
-var t const T = const(T{})
-t_pointer := const(&t) // const * const T
+var t const T = T{}
+t_pointer1 := const(&t) // const * const T
+
+// Or like this:
+t_pointer2 := const * const T(&t) // const * const T
 ```
 
 #### 2.8.2. Dereferencing a pointer
@@ -695,7 +698,7 @@ The examples below demonstrate a few possible combinations:
 ##### 2.9.1.1. Immutable pointer to a mutable object
 
 ```go
-var immut2mut const *Object = const(&Object{})
+var immut2mut const *Object = &Object{}
 
 immut2mut = &Object{} // Compile-time error
 immut2mut.Field = 42  // fine
@@ -705,7 +708,7 @@ immut2mut.Mutation()  // fine
 ##### 2.9.1.2. Mutable pointer to an immutable object
 
 ```go
-var mut2immut * const Object = * const Object(&Object{})
+var mut2immut * const Object = &Object{}
 
 mut2immut = &Object{} // fine
 mut2immut.Field = 42  // Compile-time error
@@ -714,7 +717,7 @@ mut2immut.Mutation()  // Compile-time error
 
 ##### 2.9.1.3. Immutable pointer to an immutable object
 ```go
-var immut2immut const * const Object = const * const Object(&Object{})
+var immut2immut const * const Object = &Object{}
 
 immut2immut = &Object{} // Compile-time error
 immut2immut.Field = 42  // Compile-time error
@@ -774,7 +777,7 @@ obj.Mutation() // fine
 ```go
 var mut_immut2mut map[const Object] Object
 
-newKey := const(Object{})
+newKey := Object{}
 mut_immut2mut[newKey] = Object{} // fine
 delete(mut_immut2mut, newKey)    // fine
 
@@ -790,8 +793,8 @@ for key, value := range mut_immut2mut {
 var mut_mut2immut map[Object] const Object
 
 newKey := Object{}
-mut_mut2immut[newKey] = const(Object{}) // fine
-delete(mut_mut2immut, newKey)           // fine
+mut_mut2immut[newKey] = Object{} // fine
+delete(mut_mut2immut, newKey)    // fine
 
 for key, value := range mut_mut2immut {
 	key.Mutation()   // fine
@@ -804,9 +807,9 @@ for key, value := range mut_mut2immut {
 ```go
 var immut_immut2immut map[const Object] const Object
 
-newKey := const(Object{})
-immut_immut2immut[newKey] = const(Object{}) // fine
-delete(immut_immut2immut, newKey)           // fine
+newKey := Object{}
+immut_immut2immut[newKey] = Object{} // fine
+delete(immut_immut2immut, newKey)    // fine
 
 for key, value := range immut_immut2immut {
 	key.Mutation()   // Compile-time error
@@ -819,9 +822,9 @@ for key, value := range immut_immut2immut {
 ```go
 var m const map[const Object] const Object
 
-newKey := const(Object{})
-m[newKey] = const(Object{}) // Compile-time error
-delete(m, newKey)           // Compile-time error
+newKey := Object{}
+m[newKey] = Object{} // Compile-time error
+delete(m, newKey)    // Compile-time error
 
 for key, value := range m {
 	key.Mutation()   // Compile-time error
@@ -846,9 +849,9 @@ func main() {
 // ConstReadOnlyChannel returns an immutable read only channel
 // of immutable objects
 func ConstReadOnlyChannel() const <-chan const Object {
-	ch := make(const chan const Object)
+	ch := make(chan Object)
 	go func() {
-		ch <- const(Object{})
+		ch <- Object{}
 	}()
 	return ch
 }
@@ -869,7 +872,7 @@ func main() {
 // ConstReadOnlyChannel returns an immutable read only channel
 // of mutable objects
 func ConstReadOnlyChannel() const <-chan Object {
-	ch := make(const chan Object)
+	ch := make(chan Object)
 	go func() {
 		ch <- Object{}
 	}()
@@ -891,118 +894,69 @@ func main() {
 
 // MutReadOnlyChannel returns a mutable read only channel of immutable objects
 func MutReadOnlyChannel() <-chan const Object {
-	ch := make(chan const Object)
+	ch := make(chan Object)
 	go func() {
-		ch <- const(Object{})
+		ch <- Object{}
 	}()
 	return ch
 }
 ```
 
-### 2.10. Type Casting
-Mutable types need to be explicitly casted to immutables types to be used as
-such because implicit casting in Go is only used in exceptional cases like type
-to interface conversions.
+### 2.10. Explicit Type Casting
+Mutable types are always implicitly cast to their immutable counterparts but in
+some situations explicit casting may also be useful.
 
-#### 2.10.1. Simple Casting
-Most of the times simple `const` casting is enough like in the examples below:
+#### 2.10.1. Simple Cast
+Simple typecasting `const(mt)` converts a mutable type into its immutable
+counterpart:
 
 ```go
-// ReturnConstString returns an immutable string value
-func ReturnConstString() const string {
-	var test string
+// Simple non-const to const casting
+const_string := const("test") // const string
 
-	return "test" // Compile-time error
-	return test   // Compile-time error
+const_pointer := const(&T{}) // const * T
 
-	// Simple non-const to const casting
-	return const("test")
-	return const(test)
+const_slice := const([]int{1, 2, 3}) // const []int
 }
 ```
 
-```go
-// ReturnConstSlice returns an immutable slice
-func ReturnConstSlice() const [] int {
-	test := make([] int, 3)
-
-	return make([] int, 3)    // Compile-time error
-	return [] int {1, 2, 3}   // Compile-time error
-	return test               // Compile-time error
-
-	return make(const [] int, 3)
-
-	// Simple non-const to const casting
-	return const([] int {1, 2, 3})
-	return const(test)
-}
-```
-
-Simple typecasting `const(o)` inverts the type of the given object `o` to its
-immutable counterpart for `o` to be treated as immutable. Applying simple
-typecasting to already immutable types has no effect.
+Applying simple typecasting to already immutable types has no effect.
 
 #### 2.10.2. Literal Type Casting
-There also are more complex situations where simple `const` casting is
-insufficient. In those situations, the mutable type needs to be type-casted
-`immutable type (symbol)` to an immutable type.
+For more complex types simple `const` casting is insufficient, thus a literal
+type cast `immutable type (symbol)` to an immutable type is required.
 
 ```go
-// ReturnConstTPointerMatrix returns an immutable slice of immutable slices of
-// pointers to immutable instances of T
-func ReturnConstTPointerMatrix() const [] const [] * const T {
-    var test [] [] *T
+var original_slice [] [] *T
 
-    return make([] [] *T, 3)   // Compile-time error
-    return [] [] *T            // Compile-time error
-    return test                // Compile-time error
-    return const [][]*T (test) // Compile-time error
+// Mutable slice of immutable slices of pointers to a mutable instance of T
+s1 := [] const [] * T (original_slice)
 
-    // cast the deeply mutable to a deeply immutable type
-    return const [] const [] * const T (test)
+// Immutable slice of mutable slices of pointers to an immutable instance of T
+s2 := const [] [] * const T (original_slice)
 
-    return make(const [] const [] * const T, 3)
-    return const [] const [] * const T {
-        const [] * const T {* const T ( &T{} )},
-        const [] * const T {* const T ( &T{} )},
-        const [] * const T {* const T ( &T{} )},
-    }
-}
-```
+// Mutable slices of mutable slices of pointers to an immutable instance of T
+s3 := [] [] * const T (original_slice)
 
-```go
-// ReturnMap returns a mutable map of
-// immutable T to pointer of immutable T
-func ReturnMap() map[const T] * const T {
-	var test map[T] *T
+// Immutable slice of immutable slices of pointers to an immutable instance of T
+s4 := const [] const [] * const T (original_slice)
 
-	return make(map[T] *T, 3) // Compile-time error
-	return map[T] *T {}       // Compile-time error
-	return test               // Compile-time error
-	return const map[T] *T    // Compile-time error
+var original_map map[*T]*T
 
-	return make(map[const T] * const T, 3)
-	return map[const T] * const T {nil, nil, nil}
+// Immutable map of:
+// pointers to an immutable instance of T (key) to:
+// pointers to a mutable instance of T (value)
+m1 := const map [* const T] * T (original_map)
 
-	// const-type-cast
-	return map[const T] * const T (test)
-}
-```
+// Immutable map of:
+// pointers to a mutable instance of T (key) to:
+// pointers to an immutable instance of T (value)
+m2 := const map [* T] * const T (original_map)
 
-```go
-func main() {
-	// Declare mutable matrix of pointers to mutable structs
-	var mutable [][]*T
-
-	// Cast to immutable matrix of pointers to mutable structs
-	immutable_variant1 := const [] const [] *T (mutable)
-
-	// Cast to immutable slice of mutable slices of pointers to mutable structs
-	immutable_variant2 := const [] [] *T (mutable)
-
-	// Cast to mutable matrix of pointers to immutable structs
-	immutable_variant3 := [][] * const T (mutable)
-}
+// Mutable map of:
+// pointers to an immutable instance of T (key) to:
+// pointers to an immutable instance of T (value)
+m3 := map [* const T] * const T (original_map)
 ```
 
 #### 2.10.3. Prohibition of Casting Immutable- to Mutable Types
@@ -1013,8 +967,8 @@ of immutability.
 ### 2.11. Implicit Casting
 
 #### 2.11.1. Implicit Casting of Pointer Receivers
-Pointer receivers are implicitly casted in both directions (mutable to immutable
-and vice-versa) when the types they're pointing to match.
+Pointer receivers are implicitly cast in both directions (mutable to immutable
+and vice-versa) when the types they're pointing to are equal.
 
 Methods:
 ```go
@@ -1031,39 +985,39 @@ Variables:
 t1 := &T{}
 
 // immutable pointer to mutable T
-t2 := const * T(&T{})
+var t2 const * T = &T{}
 
 // mutable pointer to immutable T
-t3 := * const T(&T{})
+var t3 * const T = &T{}
 
 // immutable pointer to immutable T
-t4 := const * const T(&T{})
+var t4 const * const T = &T{}
 ```
 
 | Combination | Compile-time Result | Reason |
 |-|-|-|
 | `t1.M1()` | legal | types match. |
-| `t2.M1()` | **implicit cast** |  `const * T` (`t2`) is implicitly casted to `* T` (`r1`) because in both cases `T` is mutable. |
+| `t2.M1()` | **implicit cast** |  `const * T` (`t2`) is implicitly cast to `* T` (`r1`) because in both cases `T` is mutable. |
 | `t3.M1()` | illegal | `T` referenced by `t3` is immutable, but `M1` is a mutating method. |
 | `t4.M1()` | illegal | `T` referenced by `t4` is immutable, but `M1` is a mutating method. |
-| `t1.M2()` | **implicit cast** | `* T` (`t1`) is implicitly casted to `const * T` (`r2`) because in both cases `T` is mutable. |
+| `t1.M2()` | **implicit cast** | `* T` (`t1`) is implicitly cast to `const * T` (`r2`) because in both cases `T` is mutable. |
 | `t2.M2()` | legal | types match. |
 | `t3.M2()` | illegal | `T` referenced by `t3` is immutable, but `M2` is a mutating method. |
 | `t4.M2()` | illegal | `T` referenced by `t4` is immutable, but `M2` is a mutating method. |
-| `t1.M3()` | **implicit cast**  | `* T` (`t1`) is implicitly casted to `* const T` (`r3`) because `T` is mutable and `M3` is a non-mutating method. |
+| `t1.M3()` | **implicit cast**  | `* T` (`t1`) is implicitly cast to `* const T` (`r3`) because `T` is mutable and `M3` is a non-mutating method. |
 | `t2.M3()` | illegal | `T` referenced by `t2` is mutable, but `M3` is a mutating method. |
 | `t3.M3()` | legal | types match. |
-| `t4.M3()` | **implicit cast** | `const * const T` (`t4`) is implicitly casted to `* const T` (`r3`) because in both cases `T` is immutable. |
-| `t1.M4()` | **implicit cast** | `* T` (`t1`) is implicitly casted to `const * const T` (`r4`) because `T` is mutable and `M3` is a non-mutating method. |
-| `t2.M4()` | **implicit cast** | `const * T` (`t2`) is implicitly casted to `const * const T` (`r4`) because `T` is mutable and `M4` is a non-mutating method. |
-| `t3.M4()` | **implicit cast** | `* const T` (`t3`) is implicitly casted to `const * const T` (`r4`) because in both cases `T` is immutable. |
+| `t4.M3()` | **implicit cast** | `const * const T` (`t4`) is implicitly cast to `* const T` (`r3`) because in both cases `T` is immutable. |
+| `t1.M4()` | **implicit cast** | `* T` (`t1`) is implicitly cast to `const * const T` (`r4`) because `T` is mutable and `M3` is a non-mutating method. |
+| `t2.M4()` | **implicit cast** | `const * T` (`t2`) is implicitly cast to `const * const T` (`r4`) because `T` is mutable and `M4` is a non-mutating method. |
+| `t3.M4()` | **implicit cast** | `* const T` (`t3`) is implicitly cast to `const * const T` (`r4`) because in both cases `T` is immutable. |
 | `t4.M4()` | legal | types match. |
 
 ## 3. Immutability by Default (Go >= 2.x)
 If we were to think of an immutability proposal for the backward-incompatible Go
 2 language specification, then making all types immutable by default and
-introducing a special keyword `mut` for mutability annotation would be a better
-option.
+introducing a special keyword `mut` for mutability qualification would be a
+better option.
 
 ```go
 // Object implements the ObjectInterface interface
@@ -1123,18 +1077,13 @@ It's easy to forget to add the `const` qualifier and accidentally make something
 mutable. But when mutable types need to be explicitly declared mutable using the
 `mut` qualifier writing code becomes even safer.
 
-#### 3.1.2. No Explicit Casting
-When all types are mutable by default then they need to be casted to *immutable*
-types before they can be used as such. But when *all* types are **immutable by
-default** then no casting is ever necessary.
-
-#### 3.1.3. Less Code
+#### 3.1.2. Less Code
 Statistically, Most of the variables, arguments, fields, return values and
 methods are immutable, thus the frequent `const` qualifiers can be replaced by
 fewer `mut` qualifiers, which improves both readability and coding speed. The
 `mut` keyword is also shorter than `const`.
 
-#### 3.1.4. No `const` Keyword Overloading
+#### 3.1.3. No `const` Keyword Overloading
 The need for overloading of the `const` keyword would vanish, which would
 improve semantic language consistency.
 
@@ -1234,7 +1183,7 @@ prone (and slower) than it could be with immutability:
 ```go
 // ConnectedClients returns the list of all currently connected clients.
 func (s * const Server) ConnectedClients() const []Client {
-	return const(s.clients)
+	return s.clients
 }
 ```
 
@@ -1265,8 +1214,8 @@ example, C++ uses the `const` keyword to do just that).
 
 ----
 
-### 4.5. How are constants different from immutables?
-**Short:** Constants are static in memory, while immutables are just
+### 4.5. How are constants different from immutable types?
+**Short:** Constants are static in memory, while immutable types are just
 write-protected references to mutable memory.
 
 **Long:** The value of a constant is defined during the compilation and remains
@@ -1284,7 +1233,7 @@ func CreateList(size int) (mutable []string, immutable const []string) {
 	for i := 0; i < size; i++ {
 		newSlice[i] = "sample text"
 	}
-	return newSlice, const(newSlice)
+	return newSlice, newSlice
 }
 
 func main() {
@@ -1302,7 +1251,7 @@ func main() {
 ```
 
 **NOTICE:** the above code is **bad code**! Its purpose was to demonstrate that
-immutables are not constants. If you want to prevent immutable objects from
+immutable types are not constants. If you want to prevent immutable objects from
 being mutated for sure - drop all mutable references to it as soon as it's
 created!
 
@@ -1464,15 +1413,15 @@ type Implementation struct {}
 func (i * const Implementation) ReadOnly() {}
 func (i * Implementation) Write() {}
 
-// ReadInterface will not be able to execute non-const methods of the interface
-func ReadInterface(iface const Interface) {
+// TakeReadInterface will not be able to execute non-const methods of the interface
+func TakeReadInterface(iface const Interface) {
 	iface.ReadOnly() // fine
 	iface.Write()    // Compile-time error
 }
 
 func main() {
 	iface := &Implementation{}
-	ReadInterface(const(iface))
+	TakeReadInterface(iface)
 }
 ```
 ```
@@ -1530,8 +1479,8 @@ with the code protected by the `const` qualifier:
 func (rec * const T) OurMethod(
     s const [] * const Object,
 ) const [] * const Object {
-  thirdparty.Dependency(s)                     // s is safe
-  return const [] * const Object(rec.internal) // rec.internal is safe
+	thirdparty.Dependency(s) // s is safe
+	return rec.internal      // rec.internal is safe
 }
 ```
 
@@ -1588,11 +1537,12 @@ compromise compile-time safety by **removing immutability** to solve similar
 problems. Reference types like pointers, slices, and maps are just regular types
 and should be treated as such consistently without any special regulations.
 
-### 4.10. Why not implicitly convert mutable to immutable types?
-In Go, types are never implicitly converted and always need to be explicitly
-casted. As the immutability operator `const` is just a type qualifier - making
-mutable types implicitly convert to immutable types would lead to inconsistency
-in the language specification.
+### 4.10. Why implicitly cast mutable to immutable types?
+It's true that in Go, types are converted explicitly with interface types being
+the only exception to this rule. But making the typecasting of mutable- to
+immutable types explicit would break backward-compatibility (see [issue
+#14](https://github.com/romshark/Go-2-Proposal---Immutability/issues/14) for
+more details) and also make the language rather verbose.
 
 ## 5. Other Proposals
 ### 5.1. [proposal: spec: add read-only slices and maps as function arguments #20443](https://github.com/golang/go/issues/20443)

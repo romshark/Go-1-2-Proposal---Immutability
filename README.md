@@ -965,6 +965,36 @@ possible to silently void the immutability guarantee breaking the entire concept
 of immutability.
 
 ### 2.11. Implicit Casting
+Mutable types are implicitly cast to their immutable counterparts. This rule is
+applied to any type in a type-chain. If we consider the definition of a type as
+a binary sequence where mutable types are represented by `0` and immutable types
+by `1`, then any conversions of `1` to `0` should cause a compile-time error.
+
+```go
+// tip: use an 80-column wide view to make sense of the markers
+
+//         0_ 0_ 0_ 0 1______
+var origin [] [] [] * const T
+
+/* LEGAL CONVERSIONS */
+
+//       1_______ 0_ 0_ 0 1______
+var var1 const [] [] [] * const T = origin // 00001 -> 10001
+
+//       0_ 0_ 1_______ 0 0
+var var2 [] [] const [] * T = origin // 00001 -> 00100
+
+//       0_ 1_______ 1_______ 0 0
+var var3 [] const [] const [] * T = origin // 00001 -> 01100
+
+/* ILLEGAL CONVERSIONS */
+
+//       0_ 1_______ 0_ 0 0                 F        F
+var inv1 [] const [] [] * T = origin // 00001 -> 01000
+
+//       1_______ 1_______ 1_______ 1______ 0                 F        F
+var inv2 const [] const [] const [] const * T = origin // 00001 -> 11110
+```
 
 #### 2.11.1. Implicit Casting of Pointer Receivers
 Pointer receivers are implicitly cast in both directions (mutable to immutable

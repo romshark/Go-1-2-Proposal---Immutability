@@ -208,9 +208,9 @@ degrade runtime performance. This dilemma encourages Go 1.x developers to either
 write unsafe mutable APIs when targeting optimal runtime performance or safe but
 slow and copy-code bloated ones.
 
-Optional performance and code safety are, currently, mutually exclusive, even
-though having both would be possible with compiler-enforced immutable types at
-the cost of a slightly decreased compilation time.
+Unfortunatelly, optimal performance and code safety are currently mutually
+exclusive, even though having both would be possible with compiler-enforced
+immutable types at the cost of a slightly decreased compilation time.
 
 #### 1.1.4. Inconsistent Concept of Constants
 Currently, Go 1.x won't allow non-scalar constants such as constant slices:

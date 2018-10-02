@@ -383,9 +383,9 @@ func main() {
 ```
 **Expected compilation errors:**
 ```
-.example.go:9:23 cannot assign to immutable field `Object.ImmutableField` of type `const * const Object`
-.example.go:21:25 cannot assign to immutable field `Object.ImmutableField` of type `const * const Object`
-.example.go:22:40 cannot assign to immutable field `Object.ImmutableField` of type `const * const Object`
+.example.go:9:23 cannot assign to immutable field (Object.ImmutableField) of o (type const * const Object)
+.example.go:21:25 cannot assign to immutable field (Object.ImmutableField) of obj (type const * const Object)
+.example.go:22:40 cannot assign to contextually immutable field (Object.ImmutableField) of obj (type const * const Object)
 ```
 
 ----
@@ -428,10 +428,10 @@ func main() {
 ```
 **Expected compilation errors:**
 ```
-.example.go:15:7 cannot call mutating method (Object.MutatingMethod) on immutable receiver `o` (* const Object)
-.example.go:16:21 cannot assign to contextually immutable field Object.mutableField
-.example.go:17:34 cannot assign to contextually immutable field Object.mutableField
-.example.go:24:9 cannot call mutating method (Object.MutatingMethod) on immutable variable `obj` of type `* const Object`
+.example.go:15:7 cannot call mutating method (Object.MutatingMethod) on immutable o (type * const Object)
+.example.go:16:21 cannot assign to contextually immutable field (Object.mutableField) of o (type * const Object)
+.example.go:17:34 cannot assign to contextually immutable field (Object.mutableField) of o (type * const Object)
+.example.go:24:9 cannot call mutating method (Object.MutatingMethod) on immutable obj (type * const Object)
 ```
 
 ----
@@ -471,8 +471,8 @@ func ReadObj(
 **Expected compilation errors:**
 ```
 .example.go:23:19 cannot use obj (type * const Object) as type *Object in argument to MutateObject
-.example.go:24:9 cannot call mutating method (Object.MutatingMethod) on immutable variable `obj` of type `* const Object`
-.example.go:25:23 cannot assign to contextually immutable field (Object.MutableField) of type `*Object`
+.example.go:24:9 cannot call mutating method (Object.MutatingMethod) on immutable obj (type * const Object)
+.example.go:25:23 cannot assign to contextually immutable field (Object.MutableField) of obj (type * const Object)
 ```
 
 ----
@@ -509,8 +509,8 @@ func main() {
 ```
 **Expected compilation errors:**
 ```
-.example.go:22:37 cannot assign to contextually immutable field (Object.MutableField) of immutable variable `immutableVariable` of type `const * const Object`
-.example.go:23:23 cannot call mutating function (Object.MutatingMethod) on contextually immutable variable `immutableVariable` of type `const * const Object`
+.example.go:22:37 cannot assign to contextually immutable field (Object.MutableField) of immutable immutableVariable (type const * const Object)
+.example.go:23:23 cannot call mutating method (Object.MutatingMethod) on immutable immutableVariable (type const * const Object)
 ```
 
 ----
@@ -560,8 +560,8 @@ func main() {
 ```
 **Expected compilation errors:**
 ```
-.example.go:23:23 cannot assign to contextually immutable field (Object.MutableField) of type `*Object`
-.example.go:24:9 cannot call mutating method (Object.MutatingMethod) on immutable variable `obj` of type `const * const Object`
+.example.go:23:23 cannot assign to contextually immutable field (Object.MutableField) of obj (type const * const Object)
+.example.go:24:9 cannot call mutating method (Object.MutatingMethod) on immutable obj (type const * const Object)
 .example.go:25:19 cannot use obj (type const * const Object) as type *Object in argument to MutateObject
 ```
 
@@ -623,7 +623,7 @@ func main() {
 ```
 .example.go:43:26: cannot use InvalidImplementation literal (type *InvalidImplementation) as type Interface in assignment:
 	*InvalidImplementation does not implement Interface (Read method has mutable pointer receiver, expected an immutable receiver type)
-.example.go:48:19: cannot call mutating method (Interface.Write) on immutable interface readOnlyIface (const Interface)
+.example.go:48:19: cannot call mutating method (Interface.Write) on immutable readOnlyIface (type const Interface)
 ```
 
 ----
@@ -648,9 +648,9 @@ func main() {
 }
 ```
 ```
-.example.go:9:23 cannot assign to immutable variable of type `const []int`
-.example.go:10:18 cannot assign to immutable variable of type `const []int`
-.example.go:13:25 cannot assign to immutable variable of type `const []int`
+.example.go:9:23 cannot assign to immutable originalSlice (type const []int)
+.example.go:10:18 cannot assign to immutable subSlice (type const []int)
+.example.go:13:25 cannot assign to immutable anotherSubSlice (type const []int)
 ```
 
 ### 2.8. Address Operators
@@ -949,9 +949,9 @@ func Function() {
 }
 ```
 ```
-.library.go:23:23: cannot assign to immutable variable ConstantNames (const []string)
-.library.go:24:32: cannot assign to immutable variable privateImmutTInstances (const [] * const T)
-.library.go:26:12: cannot call mutating method (T.MutatingMethod) on immutable variable constT (* const T)
+.library.go:23:23: cannot assign to immutable ConstantNames (type const []string)
+.library.go:24:32: cannot assign to immutable privateImmutTInstances (type const [] * const T)
+.library.go:26:12: cannot call mutating method (T.MutatingMethod) on immutable constT (type * const T)
 ```
 
 Imported:
@@ -965,7 +965,7 @@ func main() {
 }
 ```
 ```
-.library.go:6:31: cannot assign to immutable variable library.ConstantNames (const []string)
+.library.go:6:31: cannot assign to immutable library.ConstantNames (type const []string)
 ```
 
 ### 2.11. Explicit Type Casting
@@ -1556,7 +1556,7 @@ func main() {
 }
 ```
 ```
-.example:13:11: cannot call mutating method on immutable interface iface (const Interface)
+.example:13:11: cannot call mutating method (Interface.Write) on immutable iface (type const Interface)
 ```
 
 ### 4.8. Doesn't the `const` qualifier add boilerplate and make code harder to read?

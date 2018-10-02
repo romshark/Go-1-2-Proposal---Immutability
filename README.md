@@ -18,11 +18,11 @@ language specification](https://blog.golang.org/toward-go2).
 	</tr>
 	<tr>
 		<td><b>Status</b></td>
-		<td>Draft</td>
+		<td>Public</td>
 	</tr>
 	<tr>
 		<td><b>Version</b></td>
-		<td>v0.1.0</td>
+		<td>1.0.0</td>
 	</tr>
 </table>
 

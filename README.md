@@ -74,7 +74,7 @@ language specification](https://blog.golang.org/toward-go2).
 			- [2.10.3. Prohibition of Casting Immutable- to Mutable Types](#2103-prohibition-of-casting-immutable--to-mutable-types)
 		- [2.11. Implicit Casting](#211-implicit-casting)
 			- [2.11.1. Implicit Casting of Pointer Receivers](#2111-implicit-casting-of-pointer-receivers)
-			- [2.12. Standard Library](#212-standard-library)
+		- [2.12. Standard Library](#212-standard-library)
 	- [3. Immutability by Default (Go >= 2.x)](#3-immutability-by-default-go--2x)
 		- [3.1. Benefits](#31-benefits)
 			- [3.1.1. Safety by Default](#311-safety-by-default)
@@ -1043,7 +1043,7 @@ var t4 const * const T = &T{}
 | `t3.M4()` | **implicit cast** | `* const T` (`t3`) is implicitly cast to `const * const T` (`r4`) because in both cases `T` is immutable. |
 | `t4.M4()` | legal | types match. |
 
-#### 2.12. Standard Library
+### 2.12. Standard Library
 Minimal backward-compatible changes to the standard library need to be made to
 make user-written code that takes advantage of immutable types interoperable
 with the standard library.

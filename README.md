@@ -272,7 +272,7 @@ func (r * const T) Method(
 The above code is unambiguous and precise. It clearly represent the intentions
 of its original author and answers all critical questions reliably:
 - Will it produce any side-effects on `r`?
-    - **No, it can't. It's receiver is immutable**
+    - **No, it can't. Its receiver is immutable**
 - Will it mutate the `T` referenced by `a`?
     - **No, it can't. The `T` referenced by `a` is immutable**
 - Will it mutate `v`?

@@ -74,6 +74,7 @@ language specification](https://blog.golang.org/toward-go2).
 			- [2.10.3. Prohibition of Casting Immutable- to Mutable Types](#2103-prohibition-of-casting-immutable--to-mutable-types)
 		- [2.11. Implicit Casting](#211-implicit-casting)
 			- [2.11.1. Implicit Casting of Pointer Receivers](#2111-implicit-casting-of-pointer-receivers)
+			- [2.12. Standard Library](#212-standard-library)
 	- [3. Immutability by Default (Go >= 2.x)](#3-immutability-by-default-go--2x)
 		- [3.1. Benefits](#31-benefits)
 			- [3.1.1. Safety by Default](#311-safety-by-default)
@@ -1011,6 +1012,41 @@ var t4 const * const T = &T{}
 | `t2.M4()` | **implicit cast** | `const * T` (`t2`) is implicitly cast to `const * const T` (`r4`) because `T` is mutable and `M4` is a non-mutating method. |
 | `t3.M4()` | **implicit cast** | `* const T` (`t3`) is implicitly cast to `const * const T` (`r4`) because in both cases `T` is immutable. |
 | `t4.M4()` | legal | types match. |
+
+#### 2.12. Standard Library
+Minimal backward-compatible changes to the standard library need to be made to
+make user-written code that takes advantage of immutable types interoperable
+with the standard library.
+
+[strings.Join](https://golang.org/pkg/strings/#Join) is a typical example of a
+standard library function that needs to be updated to take advantage of
+immutable types. Its updated version would have to guarantee the immutability of
+`a`:
+
+```go
+func Join(a const []string, sep string) string
+```
+
+Optionally, `sep` could be declared immutable as well (`const string`)
+protecting it from accidental overwrites in the function scope. Making `sep`
+immutable simply guides the function's implementor by telling him/her that `sep`
+is not meant to be overwritten in the function's scope, it has no meaning for
+the function's caller though.
+
+This change is necessary because otherwise, the following code that takes
+advantage of immutable types would not compile:
+
+```go
+// Example won't compile because the old strings.Join takes a mutable slice,
+// but casting the immutable "a" to a mutable slice of strings is illegal!
+func Example(a const []string) {
+	concat := strings.Join(a, ",") // Compile-time error
+}
+```
+
+If [strings.Join](https://golang.org/pkg/strings/#Join) won't support immutable
+types, then its users will be **forced** to fall back to a mutable slice
+argument, which makes the immutability concept useless for their specific case.
 
 ## 3. Immutability by Default (Go >= 2.x)
 If we were to think of an immutability proposal for the backward-incompatible Go

@@ -68,12 +68,13 @@ language specification](https://blog.golang.org/toward-go2).
 				- [2.9.4.1. Immutable channels of immutable objects](#2941-immutable-channels-of-immutable-objects)
 				- [2.9.4.2. Immutable channels of mutable objects](#2942-immutable-channels-of-mutable-objects)
 				- [2.9.4.3. Mutable channels of immutable objects](#2943-mutable-channels-of-immutable-objects)
-		- [2.10. Explicit Type Casting](#210-explicit-type-casting)
-			- [2.10.1. Simple Cast](#2101-simple-cast)
-			- [2.10.2. Literal Type Casting](#2102-literal-type-casting)
-			- [2.10.3. Prohibition of Casting Immutable- to Mutable Types](#2103-prohibition-of-casting-immutable--to-mutable-types)
-		- [2.11. Implicit Casting](#211-implicit-casting)
-			- [2.11.1. Implicit Casting of Pointer Receivers](#2111-implicit-casting-of-pointer-receivers)
+		- [2.10. Immutable Package-Scope Variables](#210-immutable-package-scope-variables)
+		- [2.11. Explicit Type Casting](#211-explicit-type-casting)
+			- [2.11.1. Simple Cast](#2111-simple-cast)
+			- [2.11.2. Literal Type Casting](#2112-literal-type-casting)
+			- [2.11.3. Prohibition of Casting Immutable- to Mutable Types](#2113-prohibition-of-casting-immutable--to-mutable-types)
+		- [2.12. Implicit Casting](#212-implicit-casting)
+			- [2.12.1. Implicit Casting of Pointer Receivers](#2121-implicit-casting-of-pointer-receivers)
 		- [2.12. Standard Library](#212-standard-library)
 	- [3. Immutability by Default (Go >= 2.x)](#3-immutability-by-default-go--2x)
 		- [3.1. Benefits](#31-benefits)
@@ -908,11 +909,65 @@ func MutReadOnlyChannel() <-chan const Object {
 }
 ```
 
-### 2.10. Explicit Type Casting
+### 2.10. Immutable Package-Scope Variables
+Package-scope variables of an immutable type can be used similarly to
+package-scope constants. They compensate for the [lack of non-scalar
+constants](https://github.com/romshark/Go-1-2-Proposal---Immutability#114-inconsistent-concept-of-constants).
+
+```go
+package library
+
+type T struct {}
+
+func (t * const T) MutatingMethod() {
+	/*...*/
+}
+
+// ConstantNames represents a package-scope immutable slice of strings
+var ConstantNames const []string = []string{"Anna", "Mike", "Ashley"}
+
+// privateImmutTInstances represents a package-scope immutable slice of pointers
+// to immutable instances of T
+var privateImmutTInstances const [] * const T = []*T{
+	&T{},
+	&T{},
+	&T{},
+}
+
+// Function represents an exported function that tries to mutate immutable
+// package-scope variables
+func Function() {
+	ConstantNames[0] = "Hannah"      // Compile-time error
+	privateImmutTInstances[0] = &T{} // Compile-time error
+	constT := privateImmutTInstances[0]
+	constT.MutatingMethod() // Compile-time error
+}
+```
+```
+.library.go:23:23: cannot assign to immutable variable ConstantNames (const []string)
+.library.go:24:32: cannot assign to immutable variable privateImmutTInstances (const [] * const T)
+.library.go:26:12: cannot call mutating method (T.MutatingMethod) on immutable variable constT (* const T)
+```
+
+Imported:
+```go
+package main
+
+import "github.com/x/library"
+
+func main() {
+	library.ConstantNames[0] = "Hannah"      // Compile-time error
+}
+```
+```
+.library.go:6:31: cannot assign to immutable variable library.ConstantNames (const []string)
+```
+
+### 2.11. Explicit Type Casting
 Mutable types are always implicitly cast to their immutable counterparts but in
 some situations explicit casting may also be useful.
 
-#### 2.10.1. Simple Cast
+#### 2.11.1. Simple Cast
 Simple typecasting `const(mt)` converts a mutable type into its immutable
 counterpart:
 
@@ -928,7 +983,7 @@ const_slice := const([]int{1, 2, 3}) // const []int
 
 Applying simple typecasting to already immutable types has no effect.
 
-#### 2.10.2. Literal Type Casting
+#### 2.11.2. Literal Type Casting
 For more complex types simple `const` casting is insufficient, thus a literal
 type cast `immutable type (symbol)` to an immutable type is required.
 
@@ -965,12 +1020,12 @@ m2 := const map [* T] * const T (original_map)
 m3 := map [* const T] * const T (original_map)
 ```
 
-#### 2.10.3. Prohibition of Casting Immutable- to Mutable Types
+#### 2.11.3. Prohibition of Casting Immutable- to Mutable Types
 Casting immutable types to mutable types is forbidden because it would make it
 possible to silently void the immutability guarantee breaking the entire concept
 of immutability.
 
-### 2.11. Implicit Casting
+### 2.12. Implicit Casting
 Mutable types are implicitly cast to their immutable counterparts. This rule is
 applied to any type in a type-chain. If we consider the definition of a type as
 a binary sequence where mutable types are represented by `0` and immutable types
@@ -1002,7 +1057,7 @@ var inv1 [] const [] [] * T = origin // 00001 -> 01000
 var inv2 const [] const [] const [] const * T = origin // 00001 -> 11110
 ```
 
-#### 2.11.1. Implicit Casting of Pointer Receivers
+#### 2.12.1. Implicit Casting of Pointer Receivers
 Pointer receivers are implicitly cast in both directions (mutable to immutable
 and vice-versa) when the types they're pointing to are equal.
 

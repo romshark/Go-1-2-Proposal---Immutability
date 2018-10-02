@@ -91,6 +91,7 @@ language specification](https://blog.golang.org/toward-go2).
 		- [4.8. Doesn't the `const` qualifier add boilerplate and make code harder to read?](#48-doesnt-the-const-qualifier-add-boilerplate-and-make-code-harder-to-read)
 		- [4.9. Why do we need the distinction between immutable and mutable reference types?](#49-why-do-we-need-the-distinction-between-immutable-and-mutable-reference-types)
 		- [4.10. Why implicitly cast mutable to immutable types?](#410-why-implicitly-cast-mutable-to-immutable-types)
+		- [4.11. Can't these problems be solved by a linter?](#411-cant-these-problems-be-solved-by-a-linter)
 	- [5. Other Proposals](#5-other-proposals)
 		- [5.1. proposal: spec: add read-only slices and maps as function arguments #20443](#51-proposal-spec-add-read-only-slices-and-maps-as-function-arguments-20443)
 			- [5.1.1. Disadvantages](#511-disadvantages)
@@ -1613,6 +1614,54 @@ the only exception to this rule. But making the typecasting of mutable- to
 immutable types explicit would break backward-compatibility (see [issue
 #14](https://github.com/romshark/Go-2-Proposal---Immutability/issues/14) for
 more details) and also make the language rather verbose.
+
+### 4.11. Can't these problems be solved by a linter?
+Implementing immutable types with a linter would **not** solve the following
+problems:
+- **Verbosity and Confusion**: A linter would work based on *type names* and
+  require explicit definitions of immutable alias types (including primitive
+  types) with some kind of a pre- or postfix like "ImmutType**Const**", which is
+  way too verbose and confusing compared to the `const` qualifier based
+  approach! Nobody will ever write code like this:
+
+  ```go
+  type ConstInt int
+  // ConstT is an immutable T
+  type ConstT T
+  // ConstPointerConstT is an immutable pointer to an immutable T
+  type ConstPointerConstT * ConstT
+  // ConstSliceConstT is an immutable slice of pointers to immutable Ts
+  type ConstSliceConstT [] * ConstT
+
+  func (r * ConstT) Method(
+    a ConstPointerConstT,
+    v ConstSliceConstT,
+  ) (
+    rv * ConstT,
+  ) {
+    var integer ConstInt = 42
+    /*...*/
+  }
+  ```
+
+  ...to achieve similar results as:
+  ```go
+  func (r * const T) Method(
+    a const * const T,
+    v const [] * const T,
+  ) (
+    rv * const T,
+  ) {
+	var integer int = 42
+    /*...*/
+  }
+  ```
+- **Cross-Package Consistency**: A linter wouldn't protect the code from
+  cross-package mutability issues! If any external code like a third-party
+  library doesn't support the *immutable type name convention* of the linter
+  then the immutability simply can't be checked on these parts of the program
+  code making the entire concept useless. The standard library will never be
+  written in such a style, but it's essential to all Go 1.x code.
 
 ## 5. Other Proposals
 ### 5.1. [proposal: spec: add read-only slices and maps as function arguments #20443](https://github.com/golang/go/issues/20443)

@@ -245,7 +245,7 @@ Immutable types make APIs less ambiguous.
 With immutable types the situations described in the [previous
 section](#111-ambiguous-code-and-dangerous-bugs) wouldn't even be possible,
 because the author of the function of the external package would need to
-explicitly denote immutable types as such to make the compiler enforce the
+explicitly qualify immutable types as such to make the compiler enforce the
 guarantee:
 
 ```go

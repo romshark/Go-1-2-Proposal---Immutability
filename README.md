@@ -260,7 +260,7 @@ guarantee:
 func (r * const T) Method(
 	a * const T,
 	b * T,
-	const v [] * const T,
+	v const [] * const T,
 ) (
 	rv * const T,
 	rv2 * T,

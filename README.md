@@ -342,14 +342,14 @@ specification. Code written in previous versions of Go 1.x will continue to
 compile and work as usual.
 
 ### 2.1. Immutable Fields
-Immutable struct fields are declared using the `const` qualifier. Immutable
-fields can only be set during the definition of the object and are then
-immutable for the entire lifetime of the object within any context.
+Struct fields of an immutable type can only be set during the object
+initialization and are then immutable for the entire lifetime of the object
+within any context.
 
 ```go
 type Object struct {
 	ImmutableField const * const Object // Immutable
-	MutableField   *Object       // Mutable
+	MutableField   *Object              // Mutable
 }
 
 // MutatingMethod is a non-const method
@@ -427,10 +427,8 @@ func main() {
 ----
 
 ### 2.3. Immutable Arguments
-Immutable arguments are declared using the `const` qualifier and guaranteed to
-not be mutated by the receiving function. Mutating any mutable fields of the
-object is illegal within the recursive context of the receiving function.
-Calling non-const mutating methods on immutable arguments is illegal as well.
+Immutable types can be used to guarantee the immutability of function
+arguments.
 
 ```go
 type Object struct {
@@ -470,8 +468,8 @@ func ReadObj(
 ----
 
 ### 2.4. Immutable Return Values
-Immutable return values are declared using the `const` qualifier and guarantee
-that the returned objects will be immutable in any receiving context.
+Immutable types can be used to guarantee the immutability of a
+function's returned values.
 
 ```go
 type Object struct {
@@ -508,8 +506,7 @@ func main() {
 ----
 
 ### 2.5. Immutable Variables
-Immutable variables are declared using the `const` qualifier and guarantee
-to not be mutated within any context.
+Immutable types can be used to declare immutable variables.
 
 ```go
 type Object struct {

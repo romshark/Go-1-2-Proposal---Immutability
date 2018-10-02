@@ -581,7 +581,7 @@ type Interface interface {
 
 // ValidImplementation represents a correct implementation of Interface
 type ValidImplementation struct {
-	buffer []byte
+	/*...*/
 }
 
 // Read correctly implements Interface.Read, it has an immutable receiver
@@ -597,7 +597,7 @@ func (r * const ValidImplementation) Write(s string) {
 
 // InvalidImplementation represents an incorrect implementation of Interface
 type InvalidImplementation struct {
-	buffer []byte
+	/*...*/
 }
 
 // Read incorrectly implements the immutable Interface.Read,
@@ -612,13 +612,18 @@ func (r * InvalidImplementation) Write(s string) {
 }
 
 func main() {
-	var iface Interface = &InvalidImplementation // Compile-time error
+	var iface Interface = &InvalidImplementation{} // Compile-time error
 	iface.Write(0, "example")
+
+	var readOnlyIface const Interface = &ValidImplementation{}
+	readOnlyIface.Read()
+	readOnlyIface.Write() // Compile-time error
 }
 ```
 ```
 .example.go:43:26: cannot use InvalidImplementation literal (type *InvalidImplementation) as type Interface in assignment:
 	*InvalidImplementation does not implement Interface (Read method has mutable pointer receiver, expected an immutable receiver type)
+.example.go:48:19: cannot call mutating method (Interface.Write) on immutable interface readOnlyIface (const Interface)
 ```
 
 ----

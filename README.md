@@ -320,8 +320,8 @@ those optimization opportunities are exploited later on is rather irrelevant to
 this particular proposal.
 
 ## 2. Proposed Language Changes
-The language must be adjusted to support the `const` qualifier
-inside type definitions to denote certain types as immutable.
+The language must be adjusted to support the `const` qualifier inside type
+definitions to qualify certain types as immutable.
 
 The compiler must enforce the following rules:
 - Immutable types are declared with the `const` qualifier prepended.

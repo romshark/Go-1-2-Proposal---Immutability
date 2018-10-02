@@ -102,43 +102,48 @@ language specification](https://blog.golang.org/toward-go2).
 
 ## 1. Introduction
 Immutability is a technique used to prevent mutable shared state, which is a
-very common source of nasty, hard to find and hard to even identify bugs,
-especially in concurrent environments. It can be achieved through **immutable
-types**. This proposal is based on 5 fundamental rules:
+very common source of bugs, especially in concurrent environments, and can be
+achieved through the concept of **immutable types**.
+
+Bugs caused by mutable shared state are not only hard to find and fix, but
+they're also hard to even identify. Such kind of problems can be avoided by
+systematically limiting the mutability of certain objects in the code. But a Go
+1.x developer's current approach to immutability is manual copying, which lowers
+runtime performance, code readability, and safety. Copying-based immutability
+makes code verbose, imprecise and ambiguous because the intentions of the code
+author are never clear.
+
+**Immutable types** can help achieve this goal more elegantly improving the
+safety, readability, and expressiveness of the code. They're based on 5
+fundamental rules:
 
 - **I.** Each and every type has an immutable counterpart.
 - **II.** Assignments to objects of an immutable type are illegal.
-- **III.** Calls to methods with a mutable receiver type on objects of an
-  immutable type are illegal.
-- **IV.** Mutable types can be cast to their immutable counterparts, but not
-  the other way around.
+- **III.** Calls to mutating methods (methods with a mutable receiver type) on
+  objects of an immutable type are illegal.
+- **IV.** Mutable types can be cast to their immutable counterparts, but not the
+  other way around.
 - **V.** Immutable interface methods must be implemented by a method with an
   immutable receiver type.
 
 These rules can be enforced by making the compiler scan all objects of immutable
-types for modification attempts such as assignments and calls to mutating
-methods and fail the compilation if any illegal mutation attempts were
-identified. The compiler would also need to check, whether types correctly
-implement immutable interface methods.
-
-A Go 1.x developer's current approach to immutability is manual copying because
-Go 1.x doesn't currently provide any compiler-enforced immutable types. This
-makes Go harder to work with because mutable shared state can't be easily dealt
-with.
+types for illegal modification attempts, such as assignments and calls to
+mutating methods and fail the compilation. The compiler would also need to
+check, whether types correctly implement immutable interface methods.
 
 Ideally, a safe programming language should enforce [immutability by
 default](#3-immutability-by-default-go--2x) where all types are immutable unless
-they're explicitly qualified as mutable. This concept would require significant,
-backward-incompatible language changes breaking existing Go 1.x code, thus such
-an approach to immutability would only be possible in a new
+they're explicitly qualified as mutable because forgetting to make an object
+immutable is easier, then accidentally making it mutable. But this concept would
+require significant, backward-incompatible language changes breaking existing Go
+1.x code. Thus such an approach to immutability would only be possible in a new
 backward-incompatible Go 2.x language specification.
 
 To prevent breaking Go 1.x compatibility this document describes a
-backward-compatible approach to adding support for immutable types by
+**backward-compatible** approach to adding support for immutable types by
 overloading the `const` keyword ([see here for more
 details](#44-why-overload-the-const-keyword-instead-of-introducing-a-new-keyword-like-immutable-etc))
-to act as an immutable type qualifier. There is no runtime cost to this
-approach, but a negligible compile-time cost is still required.
+to act as an immutable type qualifier.
 
 ### 1.1. Current Problems
 

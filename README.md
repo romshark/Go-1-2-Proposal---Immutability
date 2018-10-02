@@ -326,7 +326,9 @@ definitions to qualify certain types as immutable.
 The compiler must enforce the following rules:
 - Immutable types are declared with the `const` qualifier prepended.
 - Assignments to objects of an immutable type are illegal.
-- Calls to methods with a mutable receiver type on objects of an immutable type
+- Calls to mutating methods (methods with a mutable receiver type) on
+  objects of an immutable type are illegal.
+- Calls to mutating interface methods on immutable interface references
   are illegal.
 - Immutable types cannot be cast to their mutable counterparts.
 - Types must implement immutable interface methods using an immutable receiver

@@ -18,7 +18,7 @@ language specification](https://blog.golang.org/toward-go2).
 	</tr>
 	<tr>
 		<td><b>Status</b></td>
-		<td>Public</td>
+		<td><a href="https://github.com/golang/go/issues/27975">Public (#27975)</a></td>
 	</tr>
 	<tr>
 		<td><b>Version</b></td>

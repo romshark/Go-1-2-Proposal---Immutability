@@ -174,7 +174,7 @@ author:
 
 All those questions can lead to bugs if they're not properly answered, and
 [documentation never answers them
-reliably](#112-vague-and-bloated-documentation))
+reliably](#112-vague-and-bloated-documentation)
 
 If the above function is exported from a 3-rd party package `xyz` that's
 imported to a project `P` as an external dependency and the documentation
@@ -280,7 +280,7 @@ of its original author and answers all critical questions reliably:
 - Will it mutate any `T` referenced by any item of `v`?
     - **No, it can't. The `T`s referenced by any item of `v` are immutable**
 - Is the `T` referenced by `rv` allowed to be mutated?
-	- **No, it's not. The `T` referenced by `a` is immutable**
+	- **No, it's not. The `T` referenced by `rv` is immutable**
 - Will it mutate the `T` referenced by `b`?
 	- **Yes, it potentially will!**
 - Is the `T` referenced by `rv2` allowed to be mutated?

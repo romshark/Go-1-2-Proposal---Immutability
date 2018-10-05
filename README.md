@@ -1778,7 +1778,6 @@ current proposal but still has some significant differences.
 #### 5.2.2. Differences
 - "Immutability" is called "read-only type permissions" while constants are
   called "immutables".
-- Proposes implicit *mutable to immutable* type conversion by default.
 
 #### 5.2.3. Similarities
 - The proposed `ro` qualifier is part of the type definition just as the `const`

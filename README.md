@@ -1616,10 +1616,10 @@ func (rec * const T) OurMethod(
 ```
 
 If you don't like the rather verbose type definitions then consider using type
-aliasing to shorten the code even more:
+aliasing to shorten the code:
 
 ```go
-type ConstSlice const [] * const Object
+type ConstSlice = const [] * const Object
 
 func (rec * const T) OurMethod(s ConstSlice) ConstSlice {
   thirdparty.Dependency(s)

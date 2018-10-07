@@ -174,7 +174,7 @@ author:
 
 All those questions can lead to bugs if they're not properly answered, and
 [documentation never answers them
-reliably](#112-vague-and-bloated-documentation))
+reliably](#112-vague-and-bloated-documentation).
 
 If the above function is exported from a 3-rd party package `xyz` that's
 imported to a project `P` as an external dependency and the documentation
@@ -1536,7 +1536,7 @@ Passing an immutable interface to a function as an argument while trying to call
 a mutating method on it, for example, would generate a compile-time error:
 ```go
 type Interface {
-	const Read()
+	const ReadOnly()
 	Write()
 }
 

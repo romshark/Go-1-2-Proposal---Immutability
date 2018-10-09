@@ -174,7 +174,7 @@ author:
 
 All those questions can lead to bugs if they're not properly answered, and
 [documentation never answers them
-reliably](#112-vague-and-bloated-documentation)
+reliably](#112-vague-and-bloated-documentation).
 
 If the above function is exported from a 3-rd party package `xyz` that's
 imported to a project `P` as an external dependency and the documentation
@@ -1536,7 +1536,7 @@ Passing an immutable interface to a function as an argument while trying to call
 a mutating method on it, for example, would generate a compile-time error:
 ```go
 type Interface {
-	const Read()
+	const ReadOnly()
 	Write()
 }
 
@@ -1778,7 +1778,6 @@ current proposal but still has some significant differences.
 #### 5.2.2. Differences
 - "Immutability" is called "read-only type permissions" while constants are
   called "immutables".
-- Proposes implicit *mutable to immutable* type conversion by default.
 
 #### 5.2.3. Similarities
 - The proposed `ro` qualifier is part of the type definition just as the `const`

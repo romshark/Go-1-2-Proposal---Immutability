@@ -22,7 +22,7 @@ language specification](https://blog.golang.org/toward-go2).
 	</tr>
 	<tr>
 		<td><b>Version</b></td>
-		<td>1.0.0</td>
+		<td>1.0.1</td>
 	</tr>
 </table>
 

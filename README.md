@@ -13,7 +13,7 @@ language specification](https://blog.golang.org/toward-go2).
 	<tr>
 		<td><b>Author</b></td>
 		<td>
-			<a href="https://github.com/romshark">Roman Sharkov</a> (<a href="mailto:roman.sharkov@qbeon.com">roman.sharkov@qbeon.com</a>)
+			<a href="https://github.com/romshark">Roman Sharkov</a> (<a href="mailto:roman.scharkov@gmail.com">roman.scharkov@gmail.com</a>)
 		</td>
 	</tr>
 	<tr>
@@ -1787,4 +1787,4 @@ current proposal but still has some significant differences.
 
 ----
 Copyright © 2018 [Roman Sharkov](https://github.com/romshark)
-(<roman.sharkov@qbeon.com>)
+(<roman.scharkov@gmail.com>)
